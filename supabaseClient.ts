@@ -1,19 +1,10 @@
-// FIX: The triple-slash directive for Vite's client types was failing to resolve.
-// This is a workaround to manually define the types for import.meta.env.
-declare global {
-  interface ImportMeta {
-    readonly env: {
-      readonly VITE_SUPABASE_URL: string;
-      readonly VITE_SUPABASE_ANON_KEY: string;
-    }
-  }
-}
-
 import { createClient } from '@supabase/supabase-js';
 
 // Read values from Vite's environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// FIX: Cast `import.meta` to `any` to resolve TypeScript error about missing `env` property.
+const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+// FIX: Cast `import.meta` to `any` to resolve TypeScript error about missing `env` property.
+const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
 
 // Check if the variables are set
 export const isSupabaseConnected = !!(supabaseUrl && supabaseAnonKey);
