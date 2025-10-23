@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../hooks/useAppContext';
 import { Event } from '../../types';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Sun, Moon } from 'lucide-react';
+// FIX: Import the GlassCard component to resolve reference errors.
 import GlassCard from '../common/GlassCard';
 
 interface HeaderProps {

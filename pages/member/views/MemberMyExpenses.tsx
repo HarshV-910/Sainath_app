@@ -1,4 +1,3 @@
-
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Event, Expense } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -19,8 +18,8 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-    const myExpenses = useMemo(() => expenses.filter(e => e.added_by_id === currentUser!.id && e.event_id === event.id)
-        .sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [expenses, currentUser, event.id]);
+    const myExpenses = useMemo(() => expenses.filter(e => e.addedById === currentUser!.id && e.eventId === event.id)
+        .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()), [expenses, currentUser, event.id]);
 
     useEffect(() => {
         const closeMenu = () => setOpenMenuId(null);
@@ -84,11 +83,11 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
                         <li key={exp.id} className="flex justify-between items-center p-2 md:p-3 bg-white/70 rounded-lg">
                             <div>
                                 <p className="font-semibold">{exp.name}</p>
-                                <p className="text-xs text-gray-500">{new Date(exp.date_time).toLocaleString()}</p>
+                                <p className="text-xs text-gray-500">{new Date(exp.dateTime).toLocaleString()}</p>
                             </div>
                             <div className="flex items-center gap-2 md:gap-4">
                                 <div className="text-right">
-                                    <p className="font-bold text-base md:text-lg">₹{exp.amount_inr.toFixed(2)}</p>
+                                    <p className="font-bold text-base md:text-lg">₹{exp.amountInr.toFixed(2)}</p>
                                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${exp.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>
                                         {exp.verified ? 'Verified' : 'Pending'}
                                     </span>
@@ -100,8 +99,8 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
                                         </button>
                                         {openMenuId === exp.id && (
                                             <div className="absolute right-0 mt-2 w-28 bg-white rounded-md shadow-lg z-20 border">
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setEditingExpense(exp); setEditModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); handleDeleteExpense(exp.id); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setEditingExpense(exp); setEditModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); handleDeleteExpense(exp.id); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
                                             </div>
                                         )}
                                     </div>
@@ -121,7 +120,7 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
                     </div>
                     <div>
                         <label className="block font-medium">Amount (₹)</label>
-                        <input name="amount" type="number" step="0.01" defaultValue={editingExpense?.amount_inr} required className={inputClasses}/>
+                        <input name="amount" type="number" step="0.01" defaultValue={editingExpense?.amountInr} required className={inputClasses}/>
                     </div>
                     <Button type="submit" className="w-full">Update Expense</Button>
                 </form>

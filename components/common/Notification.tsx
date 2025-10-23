@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { X, CheckCircle, AlertTriangle } from 'lucide-react';
 
@@ -12,7 +11,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, onClose }) =
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 5000);
+    }, 5000); // Auto-dismiss after 5 seconds
 
     return () => {
       clearTimeout(timer);

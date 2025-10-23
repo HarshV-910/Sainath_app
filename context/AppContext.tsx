@@ -1,6 +1,20 @@
+
+
 import React, { createContext, ReactNode, useState, useEffect } from 'react';
 import { User, Role, UserStatus, Event, Item, Order, Expense, StoredFile, Note, PaymentStatus } from '../types';
-import { supabase } from '../supabaseClient';
+import useLocalStorage from '../hooks/useLocalStorage';
+
+// A simple hashing function for demonstration. In a real app, use a proper library like bcrypt.
+const simpleHash = (s: string) => {
+    let hash = 0;
+    if (s.length === 0) return hash.toString();
+    for (let i = 0; i < s.length; i++) {
+        const char = s.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash.toString();
+};
 
 export interface NotificationType {
     message: string;
@@ -9,7 +23,6 @@ export interface NotificationType {
 
 export interface AppContextType {
     currentUser: User | null;
-    loading: boolean;
     users: User[];
     events: Event[];
     items: Item[];
@@ -19,334 +32,390 @@ export interface AppContextType {
     notes: Note[];
     error: string | null;
     notification: NotificationType | null;
-    login: (email: string, pass: string) => Promise<void>;
-    logout: () => Promise<void>;
-    requestToJoin: (name: string, email: string, pass: string) => Promise<void>;
+    login: (email: string, pass: string) => void;
+    logout: () => void;
+    requestToJoin: (name: string, email: string, pass: string) => void;
     clearError: () => void;
     clearNotification: () => void;
     showNotification: (message: string, type?: 'success' | 'error') => void;
-    approveMember: (memberId: string) => Promise<void>;
-    createEvent: (name: string, year: number, imageFile?: File) => Promise<void>;
-    addItem: (eventId: string, name: string, initialStock: number) => Promise<void>;
-    addStock: (itemId: string, amount: number) => Promise<void>;
-    editItemStock: (itemId: string, newStock: number) => Promise<void>;
-    addExpense: (addedById: string, eventId: string, name: string, amount: number) => Promise<void>;
-    verifyExpense: (expenseId: string) => Promise<void>;
-    editExpense: (expenseId: string, newName: string, newAmount: number) => Promise<void>;
-    deleteExpense: (expenseId: string) => Promise<void>;
-    uploadFile: (uploadedById: string, name: string, file: File) => Promise<void>;
-    deleteFile: (fileId: string) => Promise<void>;
-    verifyOrder: (orderId: string) => Promise<void>;
-    rejectOrder: (orderId: string) => Promise<void>;
-    addOrder: (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => Promise<void>;
-    editOrder: (orderId: string, newValues: { customerName: string; itemId: string; quantityKg: number; amountInr: number; }) => Promise<void>;
-    deleteOrder: (orderId: string) => Promise<void>;
-    updateOrderPaymentStatus: (orderId: string, status: PaymentStatus) => Promise<void>;
-    addNote: (memberId: string, eventId: string, content: string, imageFiles?: File[]) => Promise<void>;
-    editNote: (noteId: string, newContent: string, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
-    deleteNote: (noteId: string) => Promise<void>;
-    changePassword: (newPass: string) => Promise<void>;
-    changeEmail: (newEmail: string) => Promise<void>;
-    resetMemberPassword: (memberId: string, newPass: string) => Promise<void>;
-    addConsumptionByHost: (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => Promise<boolean>;
+    approveMember: (memberId: string) => void;
+    createEvent: (name: string, year: number, imageUrl: string) => void;
+    addItem: (eventId: string, name: string, initialStock: number) => void;
+    addStock: (itemId: string, amount: number) => void;
+    editItemStock: (itemId: string, newStock: number) => void;
+    addExpense: (addedById: string, eventId: string, name: string, amount: number) => void;
+    verifyExpense: (expenseId: string) => void;
+    editExpense: (expenseId: string, newName: string, newAmount: number) => void;
+    deleteExpense: (expenseId: string) => void;
+    uploadFile: (uploadedById: string, name: string, type: string, url: string) => void;
+    deleteFile: (fileId: string) => void;
+    verifyOrder: (orderId: string) => void;
+    rejectOrder: (orderId: string) => void;
+    addOrder: (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => void;
+    editOrder: (orderId: string, newValues: { customerName: string; itemId: string; quantityKg: number; amountInr: number; }) => void;
+    deleteOrder: (orderId: string) => void;
+    updateOrderPaymentStatus: (orderId: string, status: PaymentStatus) => void;
+    addNote: (memberId: string, eventId: string, content: string, imageUrls?: string[]) => void;
+    editNote: (noteId: string, newContent: string, newImageUrls?: string[]) => void;
+    deleteNote: (noteId: string) => void;
+    changePassword: (userId: string, newPass: string) => void;
+    changeEmail: (userId: string, newEmail: string, currentPass: string) => boolean;
+    addConsumptionByHost: (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => boolean;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [users, setUsers] = useState<User[]>([]);
-    const [events, setEvents] = useState<Event[]>([]);
-    const [items, setItems] = useState<Item[]>([]);
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [storedFiles, setStoredFiles] = useState<StoredFile[]>([]);
-    const [notes, setNotes] = useState<Note[]>([]);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useLocalStorage<User[]>('sainath_users', []);
+    const [events, setEvents] = useLocalStorage<Event[]>('sainath_events', []);
+    const [items, setItems] = useLocalStorage<Item[]>('sainath_items', []);
+    const [orders, setOrders] = useLocalStorage<Order[]>('sainath_orders', []);
+    const [expenses, setExpenses] = useLocalStorage<Expense[]>('sainath_expenses', []);
+    const [storedFiles, setStoredFiles] = useLocalStorage<StoredFile[]>('sainath_files', []);
+    const [notes, setNotes] = useLocalStorage<Note[]>('sainath_notes', []);
+    const [currentUser, setCurrentUser] = useLocalStorage<User | null>('sainath_currentUser', null);
     const [error, setError] = useState<string | null>(null);
     const [notification, setNotification] = useState<NotificationType | null>(null);
-    
+
+    useEffect(() => {
+        // Initialize default data if it's the first run
+        if (users.length === 0) {
+            const host: User = {
+                id: crypto.randomUUID(),
+                name: 'Sainath host',
+                email: 'harshvekariya910@gmail.com',
+                passwordHash: simpleHash('123456'),
+                role: Role.HOST,
+                status: UserStatus.APPROVED,
+            };
+            setUsers([host]);
+
+            const rakhi: Event = { id: crypto.randomUUID(), name: 'Rakshabandhan', year: 2024, imageUrl: 'https://images.unsplash.com/photo-1597987299991-248de49a78fd?q=80&w=2070&auto=format&fit=crop' };
+            const diwali: Event = { id: crypto.randomUUID(), name: 'Diwali', year: 2024, imageUrl: 'https://images.unsplash.com/photo-1542866752-45a730a35914?q=80&w=2070&auto=format&fit=crop' };
+            setEvents([rakhi, diwali]);
+            
+            const kajuKatli: Item = { id: crypto.randomUUID(), eventId: diwali.id, name: 'Kaju-Katli', availableStockKg: 50 };
+            const chikki: Item = { id: crypto.randomUUID(), eventId: diwali.id, name: 'Chikki', availableStockKg: 100 };
+            const kajuKatliRakhi: Item = { id: crypto.randomUUID(), eventId: rakhi.id, name: 'Kaju-Katli', availableStockKg: 30 };
+            setItems([kajuKatli, chikki, kajuKatliRakhi]);
+        }
+    }, []);
+
     const clearError = () => setError(null);
     const clearNotification = () => setNotification(null);
+
     const showNotification = (message: string, type: 'success' | 'error' = 'error') => {
         setNotification({ message, type });
     };
 
-    const fetchAllData = async () => {
-        if (!supabase) return;
-        const fetchTables = [
-            supabase.from('profiles').select('*').then(({ data }) => setUsers(data as User[] || [])),
-            supabase.from('events').select('*').then(({ data }) => setEvents(data || [])),
-            supabase.from('items').select('*').then(({ data }) => setItems(data || [])),
-            supabase.from('orders').select('*').then(({ data }) => setOrders(data || [])),
-            supabase.from('expenses').select('*').then(({ data }) => setExpenses(data || [])),
-            supabase.from('stored_files').select('*').then(({ data }) => setStoredFiles(data || [])),
-            supabase.from('notes').select('*').then(({ data }) => setNotes(data || [])),
-        ];
-        await Promise.all(fetchTables);
-    };
-
-    useEffect(() => {
-        if (!supabase) return;
-        fetchAllData(); 
-        
-        const subscription = supabase.channel('public-db-changes')
-          .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-            fetchAllData();
-          })
-          .subscribe();
-
-        return () => {
-            supabase.removeChannel(subscription);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!supabase) {
-          setLoading(false);
-          return;
-        }
-
-        const checkUser = async (user: any) => {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-            
-            if (profile) {
-                setCurrentUser({
-                    id: user.id,
-                    email: user.email!,
-                    name: profile.name,
-                    role: profile.role,
-                    status: profile.status,
-                });
-            }
-        };
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            const user = session?.user;
-            if (user) {
-                await checkUser(user);
-            } else {
-                setCurrentUser(null);
-            }
-            setLoading(false);
-        });
-        
-        return () => subscription.unsubscribe();
-    }, []);
-
-    const login = async (email: string, pass: string) => {
+    const login = (email: string, pass: string) => {
         clearError();
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        if (error) setError(error.message);
+        const passwordHash = simpleHash(pass);
+        const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === passwordHash);
+        
+        if (user) {
+            if (user.status === UserStatus.PENDING) {
+                setError('Your account is pending approval from the host.');
+            } else if (user.status === UserStatus.APPROVED) {
+                setCurrentUser(user);
+            }
+        } else {
+            setError('Invalid email or password.');
+        }
     };
 
-    const logout = async () => {
-        await supabase.auth.signOut();
+    const logout = () => {
         setCurrentUser(null);
     };
 
-    const requestToJoin = async (name: string, email: string, pass: string) => {
+    const requestToJoin = (name: string, email: string, pass: string) => {
         clearError();
-        const { error } = await supabase.auth.signUp({
-            email, password: pass, options: { data: { name } }
-        });
-        if (error) {
-             setError(error.message);
-        } else {
-            showNotification('Join request sent! Please wait for the host to approve your account.', 'success');
-        }
-    };
-    
-    const approveMember = async (memberId: string) => {
-        const { error } = await supabase.from('profiles').update({ status: UserStatus.APPROVED }).eq('id', memberId);
-        if (error) showNotification(error.message);
-    };
-
-    const createEvent = async (name: string, year: number, imageFile?: File) => {
-        let imageUrl = `https://picsum.photos/seed/${name}${year}/400/300`;
-        if (imageFile) {
-            const filePath = `events/${Date.now()}-${imageFile.name}`;
-            const { error: uploadError } = await supabase.storage.from('sainath-uploads').upload(filePath, imageFile);
-            if (uploadError) {
-              showNotification(uploadError.message);
-              return;
-            }
-            const { data } = supabase.storage.from('sainath-uploads').getPublicUrl(filePath);
-            imageUrl = data.publicUrl;
-        }
-        const { error } = await supabase.from('events').insert({ name, year, image_url: imageUrl });
-        if(error) showNotification(error.message); else showNotification('Event created successfully!', 'success');
-    };
-
-    const changePassword = async (newPass: string) => {
-        const { error } = await supabase.auth.updateUser({ password: newPass });
-        if (error) showNotification(error.message, 'error');
-        else showNotification('Password updated successfully!', 'success');
-    };
-
-    const changeEmail = async (newEmail: string) => {
-        const { error } = await supabase.auth.updateUser({ email: newEmail });
-        if (error) showNotification(error.message, 'error');
-        else showNotification('Email change initiated. Please check both your old and new email to confirm.', 'success');
-    };
-
-    const resetMemberPassword = async (memberId: string, newPass: string) => {
-        showNotification("Admin password reset for members must be enabled in your Supabase project settings.", 'error');
-    };
-    
-    const addItem = async (eventId: string, name: string, initialStock: number) => {
-        await supabase.from('items').insert({ event_id: eventId, name, available_stock_kg: initialStock });
-    };
-
-    const addStock = async (itemId: string, amount: number) => {
-        const { data: item } = await supabase.from('items').select('available_stock_kg').eq('id', itemId).single();
-        if (item) {
-            await supabase.from('items').update({ available_stock_kg: item.available_stock_kg + amount }).eq('id', itemId);
-        }
-    };
-
-    const editItemStock = async (itemId: string, newStock: number) => {
-        await supabase.from('items').update({ available_stock_kg: newStock }).eq('id', itemId);
-    };
-
-    const addOrder = async (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => {
-        const { data: item } = await supabase.from('items').select('available_stock_kg, name').eq('id', itemId).single();
-        if (!item || item.available_stock_kg < quantityKg) {
-            showNotification(`Insufficient stock for ${item?.name}. Available: ${item?.available_stock_kg || 0} kg.`, 'error');
+        if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+            setError('An account with this email already exists.');
             return;
         }
-        await supabase.from('orders').insert({ member_id: memberId, event_id: eventId, item_id: itemId, customer_name: customerName, quantity_kg: quantityKg, amount_inr: amountInr });
+        const newUser: User = {
+            id: crypto.randomUUID(),
+            name,
+            email,
+            passwordHash: simpleHash(pass || '121212'), // Use 121212 if empty
+            role: Role.MEMBER,
+            status: UserStatus.PENDING,
+        };
+        setUsers(prev => [...prev, newUser]);
+        showNotification('Join request sent! Please wait for host approval.', 'success');
+    };
+
+    const approveMember = (memberId: string) => {
+        setUsers(prev => prev.map(u => u.id === memberId ? { ...u, status: UserStatus.APPROVED } : u));
     };
     
-    const addConsumptionByHost = async (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number): Promise<boolean> => {
-        const { data: item } = await supabase.from('items').select('available_stock_kg, name').eq('id', itemId).single();
-        if (!item || item.available_stock_kg < quantityKg) {
-            showNotification(`Insufficient stock for ${item?.name}. Available: ${item?.available_stock_kg || 0} kg.`, 'error');
+    const createEvent = (name: string, year: number, imageUrl: string) => {
+        const newEvent: Event = {
+            id: crypto.randomUUID(),
+            name,
+            year,
+            imageUrl: imageUrl || `https://picsum.photos/seed/${name}${year}/400/300`,
+        };
+        setEvents(prev => [...prev, newEvent]);
+    };
+    
+    const addItem = (eventId: string, name: string, initialStock: number) => {
+        const newItem: Item = {
+            id: crypto.randomUUID(),
+            eventId,
+            name,
+            availableStockKg: initialStock,
+        };
+        setItems(prev => [...prev, newItem]);
+    };
+
+    const addStock = (itemId: string, amount: number) => {
+        setItems(prev => prev.map(i => i.id === itemId ? { ...i, availableStockKg: i.availableStockKg + amount } : i));
+    };
+
+    const editItemStock = (itemId: string, newStock: number) => {
+        setItems(prev => prev.map(i => i.id === itemId ? { ...i, availableStockKg: newStock } : i));
+    };
+
+    const addOrder = (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) {
+            showNotification("Selected item not found. Please refresh and try again.");
+            return;
+        }
+        
+        if (item.availableStockKg < quantityKg) {
+            showNotification(`Insufficient stock for ${item.name}. Available: ${item.availableStockKg.toFixed(2)} kg.`);
+            return;
+        }
+
+        const newOrder: Order = {
+            id: crypto.randomUUID(),
+            memberId, eventId, itemId, customerName, quantityKg, amountInr,
+            paymentStatus: PaymentStatus.BAKI,
+            verified: false,
+            dateTime: new Date().toISOString(),
+        };
+        setOrders(prev => [...prev, newOrder]);
+    };
+    
+    const addConsumptionByHost = (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number): boolean => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) {
+            showNotification("Selected item not found. Please refresh and try again.");
+            return false;
+        }
+        
+        if (item.availableStockKg < quantityKg) {
+            showNotification(`Insufficient stock for ${item.name}. Available: ${item.availableStockKg.toFixed(2)} kg.`);
             return false;
         }
 
-        const { error } = await supabase.from('orders').insert({ member_id: memberId, event_id: eventId, item_id: itemId, customer_name: customerName, quantity_kg: quantityKg, amount_inr: amountInr, verified: true });
-        
-        if (!error) {
-            await supabase.from('items').update({ available_stock_kg: item.available_stock_kg - quantityKg }).eq('id', itemId);
-            return true;
-        }
-        return false;
+        const newOrder: Order = {
+            id: crypto.randomUUID(),
+            memberId, eventId, itemId, customerName, quantityKg, amountInr,
+            paymentStatus: PaymentStatus.BAKI,
+            verified: true, // Auto-verified
+            dateTime: new Date().toISOString(),
+        };
+        setOrders(prev => [...prev, newOrder]);
+        // Reduce stock immediately
+        setItems(prev => prev.map(i => i.id === itemId ? { ...i, availableStockKg: i.availableStockKg - quantityKg } : i));
+        return true;
     };
 
-    const verifyOrder = async (orderId: string) => {
-        const { data: order } = await supabase.from('orders').select('*, items(available_stock_kg, name)').eq('id', orderId).single();
-        if (!order || !order.items) return;
-
-        if (order.items.available_stock_kg < order.quantity_kg) {
-            showNotification(`Cannot verify. Insufficient stock for ${order.items.name}.`, 'error');
+    const editOrder = (orderId: string, newValues: { customerName: string; itemId: string; quantityKg: number; amountInr: number; }) => {
+        const item = items.find(i => i.id === newValues.itemId);
+        if (!item) {
+            showNotification("Selected item not found. Please refresh and try again.");
+            return;
+        }
+        
+        if (item.availableStockKg < newValues.quantityKg) {
+            showNotification(`Insufficient stock for ${item.name}. Available: ${item.availableStockKg.toFixed(2)} kg.`);
             return;
         }
 
-        await supabase.from('orders').update({ verified: true, edited: false }).eq('id', orderId);
-        await supabase.from('items').update({ available_stock_kg: order.items.available_stock_kg - order.quantity_kg }).eq('id', order.item_id);
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...newValues, verified: false, edited: true, dateTime: new Date().toISOString() } : o));
     };
 
-    const rejectOrder = async (orderId: string) => {
-        await supabase.from('orders').delete().eq('id', orderId);
+    const deleteOrder = (orderId: string) => {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
     };
 
-    const editOrder = async (orderId: string, newValues: { customerName: string; itemId: string; quantityKg: number; amountInr: number; }) => {
-        await supabase.from('orders').update({
-            customer_name: newValues.customerName,
-            item_id: newValues.itemId,
-            quantity_kg: newValues.quantityKg,
-            amount_inr: newValues.amountInr,
-            verified: false,
-            edited: true,
-            date_time: new Date().toISOString()
-        }).eq('id', orderId);
+    const verifyOrder = (orderId: string) => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) {
+            showNotification("Order not found.");
+            return;
+        }
+        const item = items.find(i => i.id === order.itemId);
+        if (!item) {
+            showNotification("Item associated with this order not found.");
+            return;
+        }
+    
+        if (item.availableStockKg < order.quantityKg) {
+            showNotification(`Cannot verify. Insufficient stock for ${item.name}. Available: ${item.availableStockKg.toFixed(2)} kg, Requested: ${order.quantityKg.toFixed(2)} kg.`);
+            return;
+        }
+    
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, verified: true, edited: false } : o));
+        // Reduce stock
+        setItems(prev => prev.map(i => i.id === order.itemId ? { ...i, availableStockKg: i.availableStockKg - order.quantityKg } : i));
+    };
+
+    const rejectOrder = (orderId: string) => {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
     };
     
-    const deleteOrder = async (orderId: string) => {
-        await supabase.from('orders').delete().eq('id', orderId);
+    const updateOrderPaymentStatus = (orderId: string, status: PaymentStatus) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: status } : o));
     };
 
-    const updateOrderPaymentStatus = async (orderId: string, status: PaymentStatus) => {
-        await supabase.from('orders').update({ payment_status: status }).eq('id', orderId);
+    const addExpense = (addedById: string, eventId: string, name: string, amountInr: number) => {
+        const newExpense: Expense = {
+            id: crypto.randomUUID(),
+            addedById,
+            eventId,
+            name,
+            amountInr,
+            verified: currentUser?.role === Role.HOST, // Host expenses are auto-verified
+            dateTime: new Date().toISOString(),
+        };
+        setExpenses(prev => [...prev, newExpense]);
     };
 
-    const addExpense = async (addedById: string, eventId: string, name: string, amountInr: number) => {
-        const verified = currentUser?.role === Role.HOST;
-        await supabase.from('expenses').insert({ added_by_id: addedById, event_id: eventId, name, amount_inr: amountInr, verified });
+    const editExpense = (expenseId: string, newName: string, newAmount: number) => {
+        setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, name: newName, amountInr: newAmount } : e));
     };
 
-    const editExpense = async (expenseId: string, newName: string, newAmount: number) => {
-        await supabase.from('expenses').update({ name: newName, amount_inr: newAmount }).eq('id', expenseId);
+    const deleteExpense = (expenseId: string) => {
+        setExpenses(prev => prev.filter(e => e.id !== expenseId));
     };
 
-    const deleteExpense = async (expenseId: string) => {
-        await supabase.from('expenses').delete().eq('id', expenseId);
+    const verifyExpense = (expenseId: string) => {
+        setExpenses(prev => prev.map(e => e.id === expenseId ? { ...e, verified: true } : e));
     };
 
-    const verifyExpense = async (expenseId: string) => {
-        await supabase.from('expenses').update({ verified: true }).eq('id', expenseId);
+    const uploadFile = (uploadedById: string, name: string, type: string, url: string) => {
+        const newFile: StoredFile = {
+            id: crypto.randomUUID(),
+            uploadedById,
+            name,
+            type,
+            url,
+            uploadDate: new Date().toISOString(),
+        };
+        setStoredFiles(prev => [...prev, newFile]);
     };
 
-    const uploadFile = async (uploadedById: string, name: string, file: File) => {
-        const filePath = `files/${uploadedById}/${Date.now()}-${file.name}`;
-        const { error } = await supabase.storage.from('sainath-uploads').upload(filePath, file);
-        if (!error) {
-            await supabase.from('stored_files').insert({ uploaded_by_id: uploadedById, name, file_path: filePath });
-        } else {
-            showNotification(error.message);
-        }
+    const deleteFile = (fileId: string) => {
+        setStoredFiles(prev => prev.filter(f => f.id !== fileId));
     };
     
-    const deleteFile = async (fileId: string) => {
-        const { data: file } = await supabase.from('stored_files').select('file_path').eq('id', fileId).single();
-        if (file) {
-            await supabase.storage.from('sainath-uploads').remove([file.file_path]);
-            await supabase.from('stored_files').delete().eq('id', fileId);
-        }
+    const addNote = (memberId: string, eventId: string, content: string, imageUrls: string[] = []) => {
+        const newNote: Note = {
+            id: crypto.randomUUID(),
+            memberId,
+            eventId,
+            content,
+            imageUrls,
+            dateTime: new Date().toISOString(),
+        };
+        setNotes(prev => [...prev, newNote]);
     };
 
-    const addNote = async (memberId: string, eventId: string, content: string, imageFiles: File[] = []) => {
-        const imageUrls: string[] = [];
-        for (const file of imageFiles) {
-            const filePath = `notes/${memberId}/${Date.now()}-${file.name}`;
-            const { error: uploadError } = await supabase.storage.from('sainath-uploads').upload(filePath, file);
-            if (!uploadError) {
-                const { data } = supabase.storage.from('sainath-uploads').getPublicUrl(filePath);
-                imageUrls.push(data.publicUrl);
-            }
-        }
-        await supabase.from('notes').insert({ member_id: memberId, event_id: eventId, content, image_urls: imageUrls });
+    const editNote = (noteId: string, newContent: string, newImageUrls: string[] = []) => {
+        setNotes(prev => prev.map(n => 
+            n.id === noteId 
+            ? { ...n, content: newContent, imageUrls: newImageUrls, dateTime: new Date().toISOString() } 
+            : n
+        ));
     };
 
-    const editNote = async (noteId: string, newContent: string, newImageFiles: File[] = [], existingImageUrls: string[] = []) => {
-        const newImageUrls: string[] = [...existingImageUrls];
-         for (const file of newImageFiles) {
-            const filePath = `notes/${currentUser?.id}/${Date.now()}-${file.name}`;
-            const { error: uploadError } = await supabase.storage.from('sainath-uploads').upload(filePath, file);
-            if (!uploadError) {
-                const { data } = supabase.storage.from('sainath-uploads').getPublicUrl(filePath);
-                newImageUrls.push(data.publicUrl);
-            }
-        }
-        await supabase.from('notes').update({ content: newContent, image_urls: newImageUrls }).eq('id', noteId);
+    const deleteNote = (noteId: string) => {
+        setNotes(prev => prev.filter(n => n.id !== noteId));
     };
 
-    const deleteNote = async (noteId: string) => {
-        await supabase.from('notes').delete().eq('id', noteId);
+    const changePassword = (userId: string, newPass: string) => {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, passwordHash: simpleHash(newPass) } : u));
+        // If the current user is changing their own password, update the currentUser object as well
+        if (currentUser?.id === userId) {
+            setCurrentUser(prev => prev ? { ...prev, passwordHash: simpleHash(newPass) } : null);
+        }
+        showNotification('Password changed successfully!', 'success');
+    };
+    
+    const changeEmail = (userId: string, newEmail: string, currentPass: string): boolean => {
+        const user = users.find(u => u.id === userId);
+        if (!user) {
+            showNotification("User not found.", 'error');
+            return false;
+        }
+
+        if (simpleHash(currentPass) !== user.passwordHash) {
+            showNotification("Incorrect password.", 'error');
+            return false;
+        }
+
+        const emailInUse = users.some(u => u.email.toLowerCase() === newEmail.toLowerCase() && u.id !== userId);
+        if (emailInUse) {
+            showNotification("This email is already in use by another account.", 'error');
+            return false;
+        }
+
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, email: newEmail } : u));
+        
+        if (currentUser?.id === userId) {
+            setCurrentUser(prev => prev ? { ...prev, email: newEmail } : null);
+        }
+        
+        showNotification('Email changed successfully!', 'success');
+        return true;
     };
 
     const value: AppContextType = {
-        currentUser, loading, users, events, items, orders, expenses, storedFiles, notes, error, notification,
-        login, logout, requestToJoin, clearError, clearNotification, showNotification, approveMember,
-        createEvent, addItem, addStock, editItemStock, addExpense, verifyExpense, editExpense, deleteExpense,
-        uploadFile, deleteFile, verifyOrder, rejectOrder, addOrder, editOrder, deleteOrder,
-        updateOrderPaymentStatus, addNote, editNote, deleteNote, changePassword, changeEmail,
-        resetMemberPassword, addConsumptionByHost,
+        currentUser,
+        users,
+        events,
+        items,
+        orders,
+        expenses,
+        storedFiles,
+        notes,
+        error,
+        notification,
+        login,
+        logout,
+        requestToJoin,
+        clearError,
+        clearNotification,
+        showNotification,
+        approveMember,
+        createEvent,
+        addItem,
+        addStock,
+        editItemStock,
+        addExpense,
+        verifyExpense,
+        editExpense,
+        deleteExpense,
+        uploadFile,
+        deleteFile,
+        verifyOrder,
+        rejectOrder,
+        addOrder,
+        editOrder,
+        deleteOrder,
+        updateOrderPaymentStatus,
+        addNote,
+        editNote,
+        deleteNote,
+        changePassword,
+        changeEmail,
+        addConsumptionByHost,
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Event, PaymentStatus } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -11,15 +10,15 @@ interface MemberMainDashboardProps {
 const MemberMainDashboard: React.FC<MemberMainDashboardProps> = ({ event }) => {
     const { items, orders, currentUser } = useAppContext();
 
-    const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    const myOrders = useMemo(() => orders.filter(o => o.member_id === currentUser!.id && o.event_id === event.id && o.verified), [orders, currentUser, event.id]);
+    const eventItems = useMemo(() => items.filter(i => i.eventId === event.id), [items, event.id]);
+    const myOrders = useMemo(() => orders.filter(o => o.memberId === currentUser!.id && o.eventId === event.id && o.verified), [orders, currentUser, event.id]);
 
-    const totalSales = useMemo(() => myOrders.reduce((sum, order) => sum + order.amount_inr, 0), [myOrders]);
+    const totalSales = useMemo(() => myOrders.reduce((sum, order) => sum + order.amountInr, 0), [myOrders]);
 
     const paymentStatusTotals = useMemo(() => {
         const stats = { [PaymentStatus.BAKI]: 0, [PaymentStatus.CASH]: 0, [PaymentStatus.ONLINE]: 0 };
         myOrders.forEach(order => {
-            stats[order.payment_status] += order.amount_inr;
+            stats[order.paymentStatus] += order.amountInr;
         });
         return stats;
     }, [myOrders]);
@@ -34,7 +33,7 @@ const MemberMainDashboard: React.FC<MemberMainDashboardProps> = ({ event }) => {
                     {eventItems.map(item => (
                         <div key={item.id} className="p-2 md:p-4 bg-white/70 rounded-lg text-center">
                             <p className="font-semibold text-brand-secondary text-sm md:text-base">{item.name}</p>
-                            <p className="text-lg md:text-xl font-bold">{item.available_stock_kg.toFixed(2)} kg</p>
+                            <p className="text-lg md:text-xl font-bold">{item.availableStockKg.toFixed(2)} kg</p>
                         </div>
                     ))}
                     {eventItems.length === 0 && <p>No items available for this event.</p>}

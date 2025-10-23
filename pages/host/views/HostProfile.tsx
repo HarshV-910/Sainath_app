@@ -7,9 +7,8 @@ import { User } from '../../../types';
 import Modal from '../../../components/common/Modal';
 
 const HostProfile: React.FC = () => {
-  const { currentUser, users, approveMember, createEvent, changePassword, changeEmail, resetMemberPassword, showNotification } = useAppContext();
-  const [eventImageFile, setEventImageFile] = useState<File | null>(null);
-  const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+  const { currentUser, users, approveMember, createEvent, changePassword, changeEmail, showNotification } = useAppContext();
+  const [eventImage, setEventImage] = useState<string | null>(null);
   const [resetUser, setResetUser] = useState<User | null>(null);
   const [isHostPasswordModalOpen, setHostPasswordModalOpen] = useState(false);
   const [isEmailModalOpen, setEmailModalOpen] = useState(false);
@@ -23,18 +22,20 @@ const HostProfile: React.FC = () => {
     const eventName = formData.get('eventName') as string;
     const eventYear = formData.get('eventYear') as string;
     if (eventName && eventYear) {
-      createEvent(eventName, parseInt(eventYear, 10), eventImageFile || undefined);
+      createEvent(eventName, parseInt(eventYear, 10), eventImage || '');
       e.currentTarget.reset();
-      setEventImageFile(null);
-      setEventImagePreview(null);
+      setEventImage(null);
     }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
-          setEventImageFile(file);
-          setEventImagePreview(URL.createObjectURL(file));
+          const reader = new FileReader();
+          reader.onload = (readEvent) => {
+              setEventImage(readEvent.target?.result as string);
+          };
+          reader.readAsDataURL(file);
       }
   };
   
@@ -46,15 +47,17 @@ const HostProfile: React.FC = () => {
         showNotification("Passwords do not match!", 'error');
         return;
     }
-    changePassword(newPass);
-    setHostPasswordModalOpen(false);
+    if (currentUser) {
+        changePassword(currentUser.id, newPass);
+        setHostPasswordModalOpen(false);
+    }
   };
   
   const handleMemberPasswordReset = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newPass = (e.currentTarget.elements.namedItem('newPassword') as HTMLInputElement).value;
     if (resetUser && newPass) {
-        resetMemberPassword(resetUser.id, newPass);
+        changePassword(resetUser.id, newPass);
         setResetUser(null);
     }
   };
@@ -62,9 +65,13 @@ const HostProfile: React.FC = () => {
   const handleHostEmailChange = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newEmail = (e.currentTarget.elements.namedItem('newEmail') as HTMLInputElement).value;
-    if (currentUser && newEmail) {
-        changeEmail(newEmail);
-        setEmailModalOpen(false);
+    const currentPass = (e.currentTarget.elements.namedItem('currentPassword') as HTMLInputElement).value;
+    
+    if (currentUser && newEmail && currentPass) {
+        const success = changeEmail(currentUser.id, newEmail, currentPass);
+        if (success) {
+            setEmailModalOpen(false);
+        }
     }
   };
 
@@ -94,7 +101,7 @@ const HostProfile: React.FC = () => {
                   <label className="block text-gray-700 font-medium mb-2">Event Photo (optional)</label>
                   <input name="eventPhoto" type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
               </div>
-              {eventImagePreview && <img src={eventImagePreview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />}
+              {eventImage && <img src={eventImage} alt="Preview" className="w-full h-32 object-cover rounded-lg" />}
               <Button type="submit" className="w-full">Create Event</Button>
             </form>
         </GlassCard>
@@ -164,7 +171,10 @@ const HostProfile: React.FC = () => {
                   <label className="block font-medium">New Email</label>
                   <input name="newEmail" type="email" required className={inputClasses} />
               </div>
-               <p className="text-sm text-gray-600">You will be sent confirmation links to both your old and new email addresses to complete the change.</p>
+              <div>
+                  <label className="block font-medium">Confirm with Current Password</label>
+                  <input name="currentPassword" type="password" required className={inputClasses} />
+              </div>
               <Button type="submit" className="w-full">Update Email</Button>
           </form>
       </Modal>

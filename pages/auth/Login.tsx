@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../../hooks/useAppContext';
 import Button from '../../components/common/Button';
@@ -9,10 +8,12 @@ const Login: React.FC = () => {
     const { login, requestToJoin, error, clearError } = useAppContext();
     const [isJoining, setIsJoining] = useState(false);
     
+    // State for form fields
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     
+    // State for password visibility
     const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = (e: React.FormEvent) => {
@@ -23,14 +24,16 @@ const Login: React.FC = () => {
     const handleJoinRequest = (e: React.FormEvent) => {
         e.preventDefault();
         requestToJoin(name, email, password);
+        // Clear fields and show success message
         setName('');
         setEmail('');
         setPassword('');
-        setIsJoining(false);
+        setIsJoining(false); // Switch back to login view after request
     };
 
     const toggleForm = () => {
         setIsJoining(!isJoining);
+        // Clear all fields and errors when toggling form
         setName('');
         setEmail('');
         setPassword('');

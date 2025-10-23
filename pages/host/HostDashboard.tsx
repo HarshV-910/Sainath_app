@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
@@ -8,20 +7,14 @@ import HostMemberData from './views/HostMemberData';
 import HostExpenseAndItems from './views/HostExpenseAndItems';
 import HostPreviousData from './views/HostPreviousData';
 import HostProfile from './views/HostProfile';
-import { Role } from '../../types';
+import { Role, Event } from '../../types';
 import { useAppContext } from '../../hooks/useAppContext';
+
 
 const HostDashboard: React.FC = () => {
     const { events } = useAppContext();
     const [activeView, setActiveView] = useState('dashboard');
-    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-
-    // Effect to set the initial selected event once events are loaded
-    useState(() => {
-        if (events.length > 0 && !selectedEventId) {
-            setSelectedEventId(events[0].id);
-        }
-    });
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(events.length > 0 ? events[0].id : null);
 
     const currentEvent = useMemo(() => events.find(e => e.id === selectedEventId) || null, [events, selectedEventId]);
 
@@ -52,12 +45,14 @@ const HostDashboard: React.FC = () => {
         <div className="flex h-screen p-2 md:p-4 gap-2 md:gap-4">
             <Sidebar userRole={Role.HOST} activeView={activeView} onNavigate={setActiveView} />
             <main className="flex-1 flex flex-col">
-                 <Header 
-                    onProfileClick={() => setActiveView('profile')}
-                    currentEvent={currentEvent}
-                    onEventChange={setSelectedEventId}
-                    events={events}
-                />
+                {currentEvent && (
+                     <Header 
+                        onProfileClick={() => setActiveView('profile')}
+                        currentEvent={currentEvent}
+                        onEventChange={setSelectedEventId}
+                        events={events}
+                    />
+                )}
                 <div className="flex-grow overflow-y-auto pr-2">
                     {renderView()}
                 </div>

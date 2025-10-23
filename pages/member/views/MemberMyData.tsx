@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -15,16 +14,16 @@ const MemberMyData: React.FC<MemberMyDataProps> = ({ event }) => {
     
     const myData = useMemo(() => {
         return orders
-            .filter(o => o.member_id === currentUser!.id && o.event_id === event.id && o.verified)
+            .filter(o => o.memberId === currentUser!.id && o.eventId === event.id && o.verified)
             .map(order => {
-                const item = items.find(i => i.id === order.item_id);
+                const item = items.find(i => i.id === order.itemId);
                 return {
-                    requestDate: new Date(order.date_time).toLocaleDateString(),
-                    customerName: order.customer_name,
+                    requestDate: new Date(order.dateTime).toLocaleDateString(),
+                    customerName: order.customerName,
                     item: item?.name || 'N/A',
-                    quantityKg: order.quantity_kg,
-                    amountInr: order.amount_inr,
-                    paymentStatus: order.payment_status,
+                    quantityKg: order.quantityKg,
+                    amountInr: order.amountInr,
+                    paymentStatus: order.paymentStatus,
                 };
             });
     }, [orders, items, currentUser, event.id]);

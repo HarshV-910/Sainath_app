@@ -16,64 +16,67 @@ export enum PaymentStatus {
 }
 
 export interface User {
-  id: string; 
-  name: string; 
-  email: string; 
-  role: Role; 
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string; // Storing hashed password
+  role: Role;
   status: UserStatus;
+  profilePhotoUrl?: string;
 }
 
 export interface Event {
   id: string;
   name: string;
   year: number;
-  image_url: string;
+  imageUrl: string;
 }
 
 export interface Item {
   id: string;
-  event_id: string;
+  eventId: string;
   name: string;
-  available_stock_kg: number;
+  availableStockKg: number;
 }
 
 export interface Order {
   id: string;
-  member_id: string;
-  event_id: string;
-  item_id: string;
-  customer_name: string;
-  quantity_kg: number;
-  amount_inr: number;
-  payment_status: PaymentStatus;
+  memberId: string;
+  eventId: string;
+  itemId: string;
+  customerName: string;
+  quantityKg: number;
+  amountInr: number;
+  paymentStatus: PaymentStatus;
   verified: boolean;
-  date_time: string;
+  dateTime: string;
   edited?: boolean;
 }
 
 export interface Expense {
   id: string;
-  added_by_id: string;
-  event_id: string;
+  addedById: string; // Can be host or member
+  eventId: string;
   name: string;
-  amount_inr: number;
+  amountInr: number;
   verified: boolean;
-  date_time: string;
+  dateTime: string;
 }
 
 export interface StoredFile {
   id: string;
-  uploaded_by_id: string;
+  uploadedById: string; // Host ID
   name: string;
-  file_path: string;
-  upload_date: string;
+  type: string;
+  url: string; // Base64 data URL
+  uploadDate: string;
 }
 
 export interface Note {
   id: string;
-  member_id: string;
-  event_id: string;
+  memberId: string;
+  eventId: string;
   content: string;
-  image_urls?: string[];
-  date_time: string;
+  imageUrls?: string[];
+  dateTime: string;
 }

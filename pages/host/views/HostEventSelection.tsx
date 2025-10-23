@@ -21,7 +21,7 @@ const HostEventSelection: React.FC<HostEventSelectionProps> = ({ onEventSelect }
             className="cursor-pointer hover:shadow-3d-hover hover:-translate-y-2 transition-transform duration-300 w-80"
             onClick={() => onEventSelect(event)}
           >
-            <img src={event.image_url} alt={event.name} className="w-full h-48 object-cover rounded-t-lg mb-4" />
+            <img src={event.imageUrl} alt={event.name} className="w-full h-48 object-cover rounded-t-lg mb-4" />
             <div className="p-4">
               <h2 className="text-2xl font-bold text-center text-brand-secondary">
                 {event.name} {event.year}

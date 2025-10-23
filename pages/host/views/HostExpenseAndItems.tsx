@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Event, Item, Expense } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -30,24 +29,24 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
     const expenseNameRef = useRef<HTMLInputElement>(null);
     const expenseAmountRef = useRef<HTMLInputElement>(null);
 
-    const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    const allExpensesForEvent = useMemo(() => expenses.filter(e => e.event_id === event.id), [expenses, event.id]);
-    const hostExpenses = useMemo(() => allExpensesForEvent.filter(e => e.added_by_id === currentUser!.id), [allExpensesForEvent, currentUser]);
-    const memberExpenses = useMemo(() => allExpensesForEvent.filter(e => e.added_by_id !== currentUser!.id).sort((a,b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [allExpensesForEvent, currentUser]);
+    const eventItems = useMemo(() => items.filter(i => i.eventId === event.id), [items, event.id]);
+    const allExpensesForEvent = useMemo(() => expenses.filter(e => e.eventId === event.id), [expenses, event.id]);
+    const hostExpenses = useMemo(() => allExpensesForEvent.filter(e => e.addedById === currentUser!.id), [allExpensesForEvent, currentUser]);
+    const memberExpenses = useMemo(() => allExpensesForEvent.filter(e => e.addedById !== currentUser!.id).sort((a,b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()), [allExpensesForEvent, currentUser]);
 
     const totalEventExpenses = useMemo(() => {
-        return allExpensesForEvent.filter(e => e.verified || e.added_by_id === currentUser!.id).reduce((sum, exp) => sum + exp.amount_inr, 0);
+        return allExpensesForEvent.filter(e => e.verified || e.addedById === currentUser!.id).reduce((sum, exp) => sum + exp.amountInr, 0);
     }, [allExpensesForEvent, currentUser]);
 
     const memberTotalExpenses = useMemo(() => {
         const summary: { [key: string]: { memberName: string, totalAmount: number } } = {};
         memberExpenses.filter(e => e.verified).forEach(exp => {
-            const member = users.find(u => u.id === exp.added_by_id);
+            const member = users.find(u => u.id === exp.addedById);
             if (member) {
                 if (!summary[member.id]) {
                     summary[member.id] = { memberName: member.name, totalAmount: 0 };
                 }
-                summary[member.id].totalAmount += exp.amount_inr;
+                summary[member.id].totalAmount += exp.amountInr;
             }
         });
         return Object.values(summary);
@@ -113,7 +112,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
     const tdClasses = "p-2 text-sm md:p-3 md:text-base text-gray-800";
     
     const ExpenseCard: React.FC<{ expense: Expense }> = ({ expense }) => {
-        const member = users.find(u => u.id === expense.added_by_id);
+        const member = users.find(u => u.id === expense.addedById);
         return (
             <GlassCard className="mb-4">
                 <div className="flex justify-between items-start">
@@ -129,11 +128,11 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                         <p className="text-gray-500">Amount</p>
-                        <p className="font-semibold">₹{expense.amount_inr.toFixed(2)}</p>
+                        <p className="font-semibold">₹{expense.amountInr.toFixed(2)}</p>
                     </div>
                     <div>
                         <p className="text-gray-500">Date</p>
-                        <p className="font-semibold">{new Date(expense.date_time).toLocaleDateString()}</p>
+                        <p className="font-semibold">{new Date(expense.dateTime).toLocaleDateString()}</p>
                     </div>
                 </div>
                 <div className="mt-4 flex gap-2">
@@ -159,15 +158,15 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                     <ul>
                         {eventItems.map(item => {
                             const consumedStock = orders
-                                .filter(o => o.item_id === item.id && o.verified && o.event_id === event.id)
-                                .reduce((sum, order) => sum + order.quantity_kg, 0);
-                            const totalStock = item.available_stock_kg + consumedStock;
+                                .filter(o => o.itemId === item.id && o.verified && o.eventId === event.id)
+                                .reduce((sum, order) => sum + order.quantityKg, 0);
+                            const totalStock = item.availableStockKg + consumedStock;
 
                             return (
                                 <li key={item.id} className="flex justify-between items-center p-2 md:p-3 mb-2 bg-white/70 rounded-lg">
                                     <div>
                                         <p className="font-semibold text-base md:text-lg">{item.name}</p>
-                                        <p className="text-gray-600 text-sm md:text-base">Available: {item.available_stock_kg.toFixed(2)} kg</p>
+                                        <p className="text-gray-600 text-sm md:text-base">Available: {item.availableStockKg.toFixed(2)} kg</p>
                                         <p className="text-xs md:text-sm text-gray-500 font-medium">Total Stock: {totalStock.toFixed(2)} kg</p>
                                     </div>
                                     <div className="relative">
@@ -176,8 +175,8 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                                         </button>
                                         {openMenuId === item.id && (
                                             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border">
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setStockModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Add Stock</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setEditStockModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Stock</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setStockModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Add Stock</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setEditStockModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Stock</a>
                                             </div>
                                         )}
                                     </div>
@@ -198,9 +197,9 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                             <li key={exp.id} className="flex justify-between items-center p-2 md:p-3 mb-2 bg-white/70 rounded-lg">
                                 <div>
                                     <p className="font-semibold">{exp.name}</p>
-                                    <p className="text-xs text-gray-500">{new Date(exp.date_time).toLocaleString()}</p>
+                                    <p className="text-xs text-gray-500">{new Date(exp.dateTime).toLocaleString()}</p>
                                 </div>
-                                <p className="font-bold text-base md:text-lg">₹{exp.amount_inr.toFixed(2)}</p>
+                                <p className="font-bold text-base md:text-lg">₹{exp.amountInr.toFixed(2)}</p>
                             </li>
                         ))}
                         {hostExpenses.length === 0 && <p className="text-center p-4">No expenses added yet.</p>}
@@ -238,6 +237,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
 
             <GlassCard>
                 <h2 className="text-xl md:text-2xl font-bold text-brand-dark mb-4">All Member Expenses</h2>
+                {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
                      <table className="w-full">
                         <thead className="border-b-2 border-gray-200">
@@ -252,13 +252,13 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                         </thead>
                         <tbody>
                             {memberExpenses.map(exp => {
-                                const member = users.find(u => u.id === exp.added_by_id);
+                                const member = users.find(u => u.id === exp.addedById);
                                 return (
                                 <tr key={exp.id} className="border-b border-gray-100 hover:bg-white/70">
                                     <td className={tdClasses}>{member?.name}</td>
                                     <td className={`${tdClasses} hidden md:table-cell`}>{exp.name}</td>
-                                    <td className={tdClasses}>₹{exp.amount_inr.toFixed(2)}</td>
-                                    <td className={`${tdClasses} hidden md:table-cell`}>{new Date(exp.date_time).toLocaleDateString()}</td>
+                                    <td className={tdClasses}>₹{exp.amountInr.toFixed(2)}</td>
+                                    <td className={`${tdClasses} hidden md:table-cell`}>{new Date(exp.dateTime).toLocaleDateString()}</td>
                                     <td className={tdClasses}>
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${exp.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>
                                             {exp.verified ? 'Verified' : 'Pending'}
@@ -277,12 +277,14 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                     </table>
                     {memberExpenses.length === 0 && <p className="text-center p-4">No member expenses submitted.</p>}
                 </div>
+                {/* Mobile/Tablet Card View */}
                 <div className="block lg:hidden">
                     {memberExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} />)}
                     {memberExpenses.length === 0 && <p className="text-center p-4">No member expenses submitted.</p>}
                 </div>
             </GlassCard>
 
+            {/* Modals */}
             <Modal isOpen={isItemModalOpen} onClose={() => setItemModalOpen(false)} title="Add New Item">
                 <form onSubmit={handleAddItem} className="space-y-4">
                     <div>
@@ -309,7 +311,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                 <form onSubmit={handleEditStock} className="space-y-4">
                     <div>
                         <label className="block font-medium">New Total Stock (kg)</label>
-                        <input ref={editStockAmountRef} type="number" step="0.01" defaultValue={selectedItem?.available_stock_kg} required className={inputClasses}/>
+                        <input ref={editStockAmountRef} type="number" step="0.01" defaultValue={selectedItem?.availableStockKg} required className={inputClasses}/>
                     </div>
                     <Button type="submit" className="w-full">Set Stock</Button>
                 </form>
@@ -335,7 +337,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                     </div>
                     <div>
                         <label className="block font-medium">Amount (₹)</label>
-                        <input name="amount" type="number" step="0.01" defaultValue={editingExpense?.amount_inr} required className={inputClasses}/>
+                        <input name="amount" type="number" step="0.01" defaultValue={editingExpense?.amountInr} required className={inputClasses}/>
                     </div>
                     <Button type="submit" className="w-full">Update Expense</Button>
                 </form>

@@ -1,6 +1,7 @@
 
+
 import React, { useState, useMemo } from 'react';
-import { Event, Order } from '../../../types';
+import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
@@ -14,22 +15,24 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
     const [filterDate, setFilterDate] = useState('');
 
     const eventOrders = useMemo(() => {
-        let filtered = orders.filter(o => o.event_id === event.id);
+        let filtered = orders.filter(o => o.eventId === event.id);
         if (filterDate) {
-            filtered = filtered.filter(o => new Date(o.date_time).toISOString().slice(0, 10) === filterDate);
+            filtered = filtered.filter(o => new Date(o.dateTime).toISOString().slice(0, 10) === filterDate);
         }
-        return filtered.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+        return filtered.sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
     }, [orders, event.id, filterDate]);
     
     const thClasses = "p-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider";
     const tdClasses = "p-3 text-sm text-gray-800";
 
+    // FIX: Define OrderCard as a React.FC with an explicit props interface to resolve the TypeScript error.
+    // The `key` prop is special in React and this change helps TypeScript understand it correctly.
     interface OrderCardProps {
-        order: Order;
+        order: (typeof eventOrders)[0];
     }
     const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
-        const member = users.find(u => u.id === order.member_id);
-        const item = items.find(i => i.id === order.item_id);
+        const member = users.find(u => u.id === order.memberId);
+        const item = items.find(i => i.id === order.itemId);
         const statusText = order.verified ? 'Verified' : (order.edited ? 'Pending (Edited)' : 'Pending');
         const statusColor = order.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800';
         
@@ -38,7 +41,7 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="font-bold text-lg">{item?.name}</p>
-                        <p className="text-sm text-gray-600">for {order.customer_name}</p>
+                        <p className="text-sm text-gray-600">for {order.customerName}</p>
                         <p className="font-semibold text-brand-secondary">{member?.name}</p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColor} text-center`}>
@@ -49,15 +52,15 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                         <p className="text-gray-500">Quantity</p>
-                        <p className="font-semibold">{order.quantity_kg.toFixed(2)} kg</p>
+                        <p className="font-semibold">{order.quantityKg.toFixed(2)} kg</p>
                     </div>
                     <div>
                         <p className="text-gray-500">Amount</p>
-                        <p className="font-semibold">₹{order.amount_inr.toFixed(2)}</p>
+                        <p className="font-semibold">₹{order.amountInr.toFixed(2)}</p>
                     </div>
                     <div className="col-span-2">
                         <p className="text-gray-500">Date/Time</p>
-                        <p className="font-semibold">{new Date(order.date_time).toLocaleString()}</p>
+                        <p className="font-semibold">{new Date(order.dateTime).toLocaleString()}</p>
                     </div>
                 </div>
                 {!order.verified && (
@@ -69,6 +72,7 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
             </GlassCard>
         );
     };
+
 
     return (
         <div className="space-y-6">
@@ -87,6 +91,7 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 </div>
             </GlassCard>
 
+            {/* Desktop Table View */}
             <div className="hidden lg:block">
                 <GlassCard>
                     <div className="overflow-x-auto">
@@ -105,19 +110,19 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                             </thead>
                             <tbody>
                                 {eventOrders.map(order => {
-                                    const member = users.find(u => u.id === order.member_id);
-                                    const item = items.find(i => i.id === order.item_id);
+                                    const member = users.find(u => u.id === order.memberId);
+                                    const item = items.find(i => i.id === order.itemId);
                                     const statusText = order.verified ? 'Verified' : (order.edited ? 'Pending (Edited)' : 'Pending');
                                     const statusColor = order.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800';
 
                                     return (
                                         <tr key={order.id} className="border-b border-gray-100 hover:bg-white/70">
-                                            <td className={tdClasses}>{new Date(order.date_time).toLocaleString()}</td>
+                                            <td className={tdClasses}>{new Date(order.dateTime).toLocaleString()}</td>
                                             <td className={tdClasses}>{member?.name}</td>
-                                            <td className={tdClasses}>{order.customer_name}</td>
+                                            <td className={tdClasses}>{order.customerName}</td>
                                             <td className={tdClasses}>{item?.name}</td>
-                                            <td className={tdClasses}>{order.quantity_kg.toFixed(2)}</td>
-                                            <td className={tdClasses}>₹{order.amount_inr.toFixed(2)}</td>
+                                            <td className={tdClasses}>{order.quantityKg.toFixed(2)}</td>
+                                            <td className={tdClasses}>₹{order.amountInr.toFixed(2)}</td>
                                             <td className={tdClasses}>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
                                                     {statusText}
@@ -141,6 +146,7 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 </GlassCard>
             </div>
             
+            {/* Mobile/Tablet Card View */}
             <div className="block lg:hidden">
                 {eventOrders.map(order => <OrderCard key={order.id} order={order} />)}
                 {eventOrders.length === 0 && <GlassCard><p className="text-center p-4">No requests found for the selected criteria.</p></GlassCard>}

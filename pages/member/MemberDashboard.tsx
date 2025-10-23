@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import MemberMainDashboard from './views/MemberMainDashboard';
@@ -14,13 +13,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 const MemberDashboard: React.FC = () => {
     const { events } = useAppContext();
     const [activeView, setActiveView] = useState('dashboard');
-    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (events.length > 0 && !selectedEventId) {
-            setSelectedEventId(events[0].id);
-        }
-    }, [events, selectedEventId]);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(events.length > 0 ? events[0].id : null);
     
     const currentEvent = useMemo(() => events.find(e => e.id === selectedEventId) || null, [events, selectedEventId]);
 

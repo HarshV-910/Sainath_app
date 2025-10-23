@@ -1,11 +1,9 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
 import { Download, Upload, Trash2 } from 'lucide-react';
-import { supabase } from '../../../supabaseClient';
 
 interface HostPreviousDataProps {
   event: Event;
@@ -18,17 +16,17 @@ const HostPreviousData: React.FC<HostPreviousDataProps> = ({ event }) => {
 
     const yearlySalesData = useMemo(() => {
         return orders
-            .filter(o => o.event_id === event.id && o.verified)
+            .filter(o => o.eventId === event.id && o.verified)
             .map(order => {
-                const member = users.find(u => u.id === order.member_id);
-                const item = items.find(i => i.id === order.item_id);
+                const member = users.find(u => u.id === order.memberId);
+                const item = items.find(i => i.id === order.itemId);
                 return {
                     memberName: member?.name || 'N/A',
-                    saleDateTime: new Date(order.date_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-                    customerName: order.customer_name,
+                    saleDateTime: new Date(order.dateTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+                    customerName: order.customerName,
                     item: item?.name || 'N/A',
-                    quantityKg: order.quantity_kg,
-                    amountInr: order.amount_inr,
+                    quantityKg: order.quantityKg,
+                    amountInr: order.amountInr,
                 };
             });
     }, [orders, users, items, event.id]);
@@ -59,16 +57,16 @@ const HostPreviousData: React.FC<HostPreviousDataProps> = ({ event }) => {
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && currentUser) {
-            const name = customFileName || file.name;
-            uploadFile(currentUser.id, name, file);
-            setCustomFileName('');
-            if(fileInputRef.current) fileInputRef.current.value = '';
+            const reader = new FileReader();
+            reader.onload = (readEvent) => {
+                const url = readEvent.target?.result as string;
+                const name = customFileName || file.name;
+                uploadFile(currentUser.id, name, file.type, url);
+                setCustomFileName('');
+                if(fileInputRef.current) fileInputRef.current.value = '';
+            };
+            reader.readAsDataURL(file);
         }
-    };
-
-    const getFileUrl = (filePath: string): string => {
-        const { data } = supabase.storage.from('sainath-uploads').getPublicUrl(filePath);
-        return data.publicUrl;
     };
     
     return (
@@ -81,6 +79,7 @@ const HostPreviousData: React.FC<HostPreviousDataProps> = ({ event }) => {
                     <Download className="inline-block mr-2" />
                     Download Merged CSV
                 </Button>
+                {/* Could add tables here for member-wise and item-wise sales if needed */}
             </GlassCard>
 
             <GlassCard>
@@ -111,10 +110,10 @@ const HostPreviousData: React.FC<HostPreviousDataProps> = ({ event }) => {
                         <li key={file.id} className="flex justify-between items-center p-2 md:p-3 bg-white/70 rounded-lg">
                             <div>
                                <p className="font-semibold text-sm md:text-base">{file.name}</p>
-                               <p className="text-xs text-gray-500">Uploaded on {new Date(file.upload_date).toLocaleDateString()}</p>
+                               <p className="text-xs text-gray-500">Uploaded on {new Date(file.uploadDate).toLocaleDateString()}</p>
                             </div>
                             <div className="flex gap-2">
-                                <a href={getFileUrl(file.file_path)} download={file.name} className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-full"><Download /></a>
+                                <a href={file.url} download={file.name} className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-full"><Download /></a>
                                 <button onClick={() => deleteFile(file.id)} className="p-2 text-red-600 hover:bg-red-100 rounded-full"><Trash2 /></button>
                             </div>
                         </li>
