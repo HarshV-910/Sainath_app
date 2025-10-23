@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Event } from '../../../types';
 import GlassCard from '../../../components/common/GlassCard';
@@ -22,7 +21,6 @@ const HostEventSelection: React.FC<HostEventSelectionProps> = ({ onEventSelect }
             className="cursor-pointer hover:shadow-3d-hover hover:-translate-y-2 transition-transform duration-300 w-80"
             onClick={() => onEventSelect(event)}
           >
-            {/* FIX: Property 'imageUrl' does not exist on type 'Event'. Did you mean 'image_url'? */}
             <img src={event.image_url} alt={event.name} className="w-full h-48 object-cover rounded-t-lg mb-4" />
             <div className="p-4">
               <h2 className="text-2xl font-bold text-center text-brand-secondary">

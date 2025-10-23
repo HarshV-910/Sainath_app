@@ -1,7 +1,6 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { Event, PaymentStatus, Order, Item as ItemType } from '../../../types';
+import { Event, PaymentStatus, Order } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
@@ -17,11 +16,7 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
     const [isRequestModalOpen, setRequestModalOpen] = useState(false);
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
     const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
-    // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
-    // FIX: Property 'dateTime' does not exist on type 'Order'. Did you mean 'date_time'?
     const myOrders = useMemo(() => orders.filter(o => o.member_id === currentUser!.id && o.event_id === event.id)
         .sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [orders, currentUser, event.id]);
         
@@ -146,7 +141,7 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                                     <td className={`${tdClasses} hidden md:table-cell`}>{order.customer_name}</td>
                                     <td className={tdClasses}>{item?.name}</td>
                                     <td className={tdClasses}>{order.quantity_kg.toFixed(2)}</td>
-                                    <td className={`${tdClasses} font-semibold text-red-600`}>{order.amount_inr.toFixed(2)}</td>
+                                    <td className={`${tdClasses} font-semibold text-red-600`}>₹{order.amount_inr.toFixed(2)}</td>
                                 </tr>
                                 )
                             })}
@@ -158,7 +153,6 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
 
             <GlassCard>
                 <h2 className="text-xl md:text-2xl font-bold text-brand-dark mb-4">All Orders</h2>
-                {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full">
                         <thead className="border-b-2 border-gray-200">
@@ -183,7 +177,7 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                                     <td className={tdClasses}>{new Date(order.date_time).toLocaleDateString()}</td>
                                     <td className={`${tdClasses} hidden md:table-cell`}>{order.customer_name}</td>
                                     <td className={tdClasses}>{item?.name}</td>
-                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.amount_inr.toFixed(2)}</td>
+                                    <td className={`${tdClasses} hidden md:table-cell`}>₹{order.amount_inr.toFixed(2)}</td>
                                     <td className={tdClasses}>
                                         <select 
                                             value={order.payment_status} 
@@ -215,7 +209,6 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                      {myOrders.length === 0 && <p className="text-center p-4">You have not made any requests yet.</p>}
                 </div>
 
-                {/* Mobile/Tablet Card View */}
                 <div className="block lg:hidden">
                     {myOrders.map(order => <OrderCard key={order.id} order={order} />)}
                     {myOrders.length === 0 && <p className="text-center p-4">You have not made any requests yet.</p>}

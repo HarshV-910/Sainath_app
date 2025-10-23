@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useRef } from 'react';
 import { Event, Note } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -17,12 +16,10 @@ const MemberMyOrderNotes: React.FC<MemberMyOrderNotesProps> = ({ event }) => {
     const [newNoteContent, setNewNoteContent] = useState('');
     const [noteImageFiles, setNoteImageFiles] = useState<File[]>([]);
     
-    // Refs for file inputs
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
 
-    // State for edit modal
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [editingNote, setEditingNote] = useState<Note | null>(null);
     const [editingNoteNewFiles, setEditingNoteNewFiles] = useState<File[]>([]);
@@ -42,7 +39,7 @@ const MemberMyOrderNotes: React.FC<MemberMyOrderNotesProps> = ({ event }) => {
         if (e.target.files) {
             setNoteImageFiles(prevFiles => [...prevFiles, ...Array.from(e.target.files!)]);
         }
-        e.target.value = ''; // Allow re-selecting the same file
+        e.target.value = '';
     };
 
     const handleEditNoteImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +93,7 @@ const MemberMyOrderNotes: React.FC<MemberMyOrderNotesProps> = ({ event }) => {
                     <Button onClick={handleAddNote} className="w-full md:w-auto">Save Note</Button>
                 </div>
                  <input type="file" ref={fileInputRef} onChange={handleNewNoteImageUpload} accept="image/*" multiple className="hidden" />
-                 <input type="file" ref={cameraInputRef} onChange={handleNewNoteImageUpload} accept="image/*" capture="user" className="hidden" />
+                 <input type="file" ref={cameraInputRef} onChange={handleNewNoteImageUpload} accept="image/*" capture="user" multiple className="hidden" />
             </GlassCard>
 
             <div className="space-y-4">

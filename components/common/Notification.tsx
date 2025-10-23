@@ -12,7 +12,7 @@ const Notification: React.FC<NotificationProps> = ({ message, type, onClose }) =
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, 5000); // Auto-dismiss after 5 seconds
+    }, 5000);
 
     return () => {
       clearTimeout(timer);

@@ -15,66 +15,65 @@ export enum PaymentStatus {
   ONLINE = 'Online',
 }
 
-// Updated User type for Supabase. It combines auth user and profile data.
 export interface User {
-  id: string; // From Supabase auth
-  name: string; // From profiles table
-  email: string; // From Supabase auth
-  role: Role; // From profiles table
-  status: UserStatus; // From profiles table
+  id: string; 
+  name: string; 
+  email: string; 
+  role: Role; 
+  status: UserStatus;
 }
 
 export interface Event {
   id: string;
   name: string;
   year: number;
-  image_url: string; // Field name matches Supabase table
+  image_url: string;
 }
 
 export interface Item {
   id: string;
-  event_id: string; // Field name matches Supabase table
+  event_id: string;
   name: string;
-  available_stock_kg: number; // Field name matches Supabase table
+  available_stock_kg: number;
 }
 
 export interface Order {
   id: string;
-  member_id: string; // Field name matches Supabase table
-  event_id: string; // Field name matches Supabase table
-  item_id: string; // Field name matches Supabase table
-  customer_name: string; // Field name matches Supabase table
-  quantity_kg: number; // Field name matches Supabase table
-  amount_inr: number; // Field name matches Supabase table
-  payment_status: PaymentStatus; // Field name matches Supabase table
+  member_id: string;
+  event_id: string;
+  item_id: string;
+  customer_name: string;
+  quantity_kg: number;
+  amount_inr: number;
+  payment_status: PaymentStatus;
   verified: boolean;
-  date_time: string; // Field name matches Supabase table
+  date_time: string;
   edited?: boolean;
 }
 
 export interface Expense {
   id: string;
-  added_by_id: string; // Field name matches Supabase table
-  event_id: string; // Field name matches Supabase table
+  added_by_id: string;
+  event_id: string;
   name: string;
-  amount_inr: number; // Field name matches Supabase table
+  amount_inr: number;
   verified: boolean;
-  date_time: string; // Field name matches Supabase table
+  date_time: string;
 }
 
 export interface StoredFile {
   id: string;
-  uploaded_by_id: string; // Field name matches Supabase table
+  uploaded_by_id: string;
   name: string;
-  file_path: string; // We now store the path, not the content
-  upload_date: string; // Field name matches Supabase table
+  file_path: string;
+  upload_date: string;
 }
 
 export interface Note {
   id: string;
-  member_id: string; // Field name matches Supabase table
-  event_id: string; // Field name matches Supabase table
+  member_id: string;
+  event_id: string;
   content: string;
-  image_urls?: string[]; // Field name matches Supabase table
-  date_time: string; // Field name matches Supabase table
+  image_urls?: string[];
+  date_time: string;
 }

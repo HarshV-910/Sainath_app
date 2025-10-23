@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Users, BarChart, FileText, Settings, Bell, DollarSign, StickyNote, FileUp } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, BarChart, FileText, Settings, Bell, DollarSign, StickyNote } from 'lucide-react';
 import { Role } from '../../types';
 
 interface SidebarProps {

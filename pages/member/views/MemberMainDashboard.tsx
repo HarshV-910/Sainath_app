@@ -1,5 +1,4 @@
 
-
 import React, { useMemo } from 'react';
 import { Event, PaymentStatus } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -12,10 +11,7 @@ interface MemberMainDashboardProps {
 const MemberMainDashboard: React.FC<MemberMainDashboardProps> = ({ event }) => {
     const { items, orders, currentUser } = useAppContext();
 
-    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
     const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
-    // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
     const myOrders = useMemo(() => orders.filter(o => o.member_id === currentUser!.id && o.event_id === event.id && o.verified), [orders, currentUser, event.id]);
 
     const totalSales = useMemo(() => myOrders.reduce((sum, order) => sum + order.amount_inr, 0), [myOrders]);

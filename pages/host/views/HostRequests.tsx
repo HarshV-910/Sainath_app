@@ -1,8 +1,6 @@
 
-
-
 import React, { useState, useMemo } from 'react';
-import { Event } from '../../../types';
+import { Event, Order } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
@@ -16,23 +14,18 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
     const [filterDate, setFilterDate] = useState('');
 
     const eventOrders = useMemo(() => {
-        // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
         let filtered = orders.filter(o => o.event_id === event.id);
         if (filterDate) {
-            // FIX: Property 'dateTime' does not exist on type 'Order'. Did you mean 'date_time'?
             filtered = filtered.filter(o => new Date(o.date_time).toISOString().slice(0, 10) === filterDate);
         }
-        // FIX: Property 'dateTime' does not exist on type 'Order'. Did you mean 'date_time'?
         return filtered.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
     }, [orders, event.id, filterDate]);
     
     const thClasses = "p-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider";
     const tdClasses = "p-3 text-sm text-gray-800";
 
-    // FIX: Define OrderCard as a React.FC with an explicit props interface to resolve the TypeScript error.
-    // The `key` prop is special in React and this change helps TypeScript understand it correctly.
     interface OrderCardProps {
-        order: (typeof eventOrders)[0];
+        order: Order;
     }
     const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         const member = users.find(u => u.id === order.member_id);
@@ -77,7 +70,6 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
         );
     };
 
-
     return (
         <div className="space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-brand-dark">Member Requests for {event.name} {event.year}</h1>
@@ -95,7 +87,6 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 </div>
             </GlassCard>
 
-            {/* Desktop Table View */}
             <div className="hidden lg:block">
                 <GlassCard>
                     <div className="overflow-x-auto">
@@ -150,7 +141,6 @@ const HostRequests: React.FC<HostRequestsProps> = ({ event }) => {
                 </GlassCard>
             </div>
             
-            {/* Mobile/Tablet Card View */}
             <div className="block lg:hidden">
                 {eventOrders.map(order => <OrderCard key={order.id} order={order} />)}
                 {eventOrders.length === 0 && <GlassCard><p className="text-center p-4">No requests found for the selected criteria.</p></GlassCard>}

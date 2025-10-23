@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState } from 'react';
 import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -16,22 +15,18 @@ const HostMemberData: React.FC<HostMemberDataProps> = ({ event }) => {
     const [isModalOpen, setModalOpen] = useState(false);
 
     const members = useMemo(() => users.filter(u => u.role === 'member' && u.status === 'approved'), [users]);
-    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
     const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
 
     const getMemberStats = (memberId: string) => {
-        // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
-        // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
         const memberOrders = orders.filter(o => o.member_id === memberId && o.event_id === event.id);
         const totalSales = memberOrders
             .filter(o => o.verified)
-            // FIX: Property 'amountInr' does not exist on type 'Order'. Did you mean 'amount_inr'?
             .reduce((sum, o) => sum + o.amount_inr, 0);
         const pendingRequests = memberOrders.filter(o => !o.verified).length;
         return { totalSales, pendingRequests };
     };
 
-    const handleAddConsumption = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleAddConsumption = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const memberId = formData.get('memberId') as string;
@@ -41,7 +36,7 @@ const HostMemberData: React.FC<HostMemberDataProps> = ({ event }) => {
         const amountInr = parseFloat(formData.get('amountInr') as string);
 
         if (memberId && itemId && customerName && !isNaN(quantityKg) && quantityKg > 0 && !isNaN(amountInr) && amountInr >= 0) {
-            const success = addConsumptionByHost(memberId, event.id, itemId, customerName, quantityKg, amountInr);
+            const success = await addConsumptionByHost(memberId, event.id, itemId, customerName, quantityKg, amountInr);
             if (success) {
                 setModalOpen(false);
             }
@@ -86,7 +81,7 @@ const HostMemberData: React.FC<HostMemberDataProps> = ({ event }) => {
                             })}
                         </tbody>
                     </table>
-                    {members.length === 0 && <p className="text-center p-4">No members have joined yet.</p>}
+                    {members.length === 0 && <p className="text-center p-4">No members have been approved yet.</p>}
                 </div>
             </GlassCard>
 

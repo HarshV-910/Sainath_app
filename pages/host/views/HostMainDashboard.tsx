@@ -1,5 +1,4 @@
 
-
 import React, { useMemo } from 'react';
 import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -13,37 +12,28 @@ interface HostMainDashboardProps {
 const HostMainDashboard: React.FC<HostMainDashboardProps> = ({ event }) => {
     const { items, orders, users, verifyOrder } = useAppContext();
     
-    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
     const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
     const unverifiedOrders = useMemo(() => orders.filter(o => o.event_id === event.id && !o.verified), [orders, event.id]);
 
     const totalStockConsumed = (itemId: string) => {
         return orders
-            // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
             .filter(o => o.item_id === itemId && o.verified)
-            // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
             .reduce((sum, o) => sum + o.quantity_kg, 0);
     };
 
     const memberConsumptionSummary = useMemo(() => {
         const summary: { [key: string]: { memberName: string, itemName: string, quantity: number, amount: number } } = {};
-        // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
         const verifiedOrders = orders.filter(o => o.event_id === event.id && o.verified);
         
         for (const order of verifiedOrders) {
-            // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
             const member = users.find(u => u.id === order.member_id);
-            // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
             const item = items.find(i => i.id === order.item_id);
             if (member && item) {
                 const key = `${member.id}-${item.id}`;
                 if (!summary[key]) {
                     summary[key] = { memberName: member.name, itemName: item.name, quantity: 0, amount: 0 };
                 }
-                // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
                 summary[key].quantity += order.quantity_kg;
-                // FIX: Property 'amountInr' does not exist on type 'Order'. Did you mean 'amount_inr'?
                 summary[key].amount += order.amount_inr;
             }
         }

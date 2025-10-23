@@ -1,6 +1,6 @@
 import React from 'react';
 import GlassCard from './GlassCard';
-import { useAppContext } from '../hooks/useAppContext';
+import { useAppContext } from '../../hooks/useAppContext';
 import Button from './Button';
 import { Clock } from 'lucide-react';
 

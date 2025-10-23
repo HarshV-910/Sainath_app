@@ -10,7 +10,7 @@ export interface NotificationType {
 export interface AppContextType {
     currentUser: User | null;
     loading: boolean;
-    users: User[]; // Now represents all profiles
+    users: User[];
     events: Event[];
     items: Item[];
     orders: Order[];
@@ -66,14 +66,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [error, setError] = useState<string | null>(null);
     const [notification, setNotification] = useState<NotificationType | null>(null);
     
-    // --- NOTIFICATION & ERROR HELPERS ---
     const clearError = () => setError(null);
     const clearNotification = () => setNotification(null);
     const showNotification = (message: string, type: 'success' | 'error' = 'error') => {
         setNotification({ message, type });
     };
 
-    // --- DATA FETCHING & REALTIME ---
     const fetchAllData = async () => {
         if (!supabase) return;
         const fetchTables = [
@@ -103,59 +101,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
     }, []);
 
-
-    // --- AUTHENTICATION ---
     useEffect(() => {
         if (!supabase) {
           setLoading(false);
           return;
         }
 
-        const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                
-                if (profile) {
-                    setCurrentUser({
-                        id: session.user.id,
-                        email: session.user.email!,
-                        name: profile.name,
-                        role: profile.role,
-                        status: profile.status,
-                    });
-                }
+        const checkUser = async (user: any) => {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            
+            if (profile) {
+                setCurrentUser({
+                    id: user.id,
+                    email: user.email!,
+                    name: profile.name,
+                    role: profile.role,
+                    status: profile.status,
+                });
             }
-            setLoading(false);
         };
 
-        checkUser();
-
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            if (session?.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                
-                if (profile) {
-                    setCurrentUser({
-                        id: session.user.id,
-                        email: session.user.email!,
-                        name: profile.name,
-                        role: profile.role,
-                        status: profile.status,
-                    });
-                }
+            const user = session?.user;
+            if (user) {
+                await checkUser(user);
             } else {
                 setCurrentUser(null);
             }
+            setLoading(false);
         });
+        
         return () => subscription.unsubscribe();
     }, []);
 
@@ -182,7 +161,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     };
     
-    // --- USER & EVENT MANAGEMENT ---
     const approveMember = async (memberId: string) => {
         const { error } = await supabase.from('profiles').update({ status: UserStatus.APPROVED }).eq('id', memberId);
         if (error) showNotification(error.message);
@@ -217,10 +195,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const resetMemberPassword = async (memberId: string, newPass: string) => {
-        showNotification("Password reset for members must be configured with admin privileges in Supabase.", 'error');
+        showNotification("Admin password reset for members must be enabled in your Supabase project settings.", 'error');
     };
     
-    // --- ITEM & STOCK MANAGEMENT ---
     const addItem = async (eventId: string, name: string, initialStock: number) => {
         await supabase.from('items').insert({ event_id: eventId, name, available_stock_kg: initialStock });
     };
@@ -236,7 +213,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await supabase.from('items').update({ available_stock_kg: newStock }).eq('id', itemId);
     };
 
-    // --- ORDERS & CONSUMPTION ---
     const addOrder = async (memberId: string, eventId: string, itemId: string, customerName: string, quantityKg: number, amountInr: number) => {
         const { data: item } = await supabase.from('items').select('available_stock_kg, name').eq('id', itemId).single();
         if (!item || item.available_stock_kg < quantityKg) {
@@ -299,7 +275,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await supabase.from('orders').update({ payment_status: status }).eq('id', orderId);
     };
 
-    // --- EXPENSES ---
     const addExpense = async (addedById: string, eventId: string, name: string, amountInr: number) => {
         const verified = currentUser?.role === Role.HOST;
         await supabase.from('expenses').insert({ added_by_id: addedById, event_id: eventId, name, amount_inr: amountInr, verified });
@@ -317,7 +292,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await supabase.from('expenses').update({ verified: true }).eq('id', expenseId);
     };
 
-    // --- FILES & NOTES ---
     const uploadFile = async (uploadedById: string, name: string, file: File) => {
         const filePath = `files/${uploadedById}/${Date.now()}-${file.name}`;
         const { error } = await supabase.storage.from('sainath-uploads').upload(filePath, file);
@@ -363,7 +337,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const deleteNote = async (noteId: string) => {
-        // Note: This doesn't delete images from storage to keep it simple.
         await supabase.from('notes').delete().eq('id', noteId);
     };
 

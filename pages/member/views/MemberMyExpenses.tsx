@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Event, Expense } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -20,9 +19,6 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-    // FIX: Property 'addedById' does not exist on type 'Expense'. Did you mean 'added_by_id'?
-    // FIX: Property 'eventId' does not exist on type 'Expense'. Did you mean 'event_id'?
-    // FIX: Property 'dateTime' does not exist on type 'Expense'. Did you mean 'date_time'?
     const myExpenses = useMemo(() => expenses.filter(e => e.added_by_id === currentUser!.id && e.event_id === event.id)
         .sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [expenses, currentUser, event.id]);
 
@@ -104,8 +100,8 @@ const MemberMyExpenses: React.FC<MemberMyExpensesProps> = ({ event }) => {
                                         </button>
                                         {openMenuId === exp.id && (
                                             <div className="absolute right-0 mt-2 w-28 bg-white rounded-md shadow-lg z-20 border">
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setEditingExpense(exp); setEditModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); handleDeleteExpense(exp.id); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setEditingExpense(exp); setEditModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); handleDeleteExpense(exp.id); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
                                             </div>
                                         )}
                                     </div>

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Event, Item, Expense } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -31,9 +30,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
     const expenseNameRef = useRef<HTMLInputElement>(null);
     const expenseAmountRef = useRef<HTMLInputElement>(null);
 
-    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
     const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
-    // FIX: Property 'eventId' does not exist on type 'Expense'. Did you mean 'event_id'?
     const allExpensesForEvent = useMemo(() => expenses.filter(e => e.event_id === event.id), [expenses, event.id]);
     const hostExpenses = useMemo(() => allExpensesForEvent.filter(e => e.added_by_id === currentUser!.id), [allExpensesForEvent, currentUser]);
     const memberExpenses = useMemo(() => allExpensesForEvent.filter(e => e.added_by_id !== currentUser!.id).sort((a,b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [allExpensesForEvent, currentUser]);
@@ -162,10 +159,7 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                     <ul>
                         {eventItems.map(item => {
                             const consumedStock = orders
-                                // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
-                                // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
                                 .filter(o => o.item_id === item.id && o.verified && o.event_id === event.id)
-                                // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
                                 .reduce((sum, order) => sum + order.quantity_kg, 0);
                             const totalStock = item.available_stock_kg + consumedStock;
 
@@ -182,8 +176,8 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                                         </button>
                                         {openMenuId === item.id && (
                                             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border">
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setStockModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Add Stock</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setEditStockModalOpen(true); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Stock</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setStockModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Add Stock</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); setSelectedItem(item); setEditStockModalOpen(true); setOpenMenuId(null); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Stock</a>
                                             </div>
                                         )}
                                     </div>
@@ -244,7 +238,6 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
 
             <GlassCard>
                 <h2 className="text-xl md:text-2xl font-bold text-brand-dark mb-4">All Member Expenses</h2>
-                {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
                      <table className="w-full">
                         <thead className="border-b-2 border-gray-200">
@@ -284,14 +277,12 @@ const HostExpenseAndItems: React.FC<HostExpenseAndItemsProps> = ({ event }) => {
                     </table>
                     {memberExpenses.length === 0 && <p className="text-center p-4">No member expenses submitted.</p>}
                 </div>
-                {/* Mobile/Tablet Card View */}
                 <div className="block lg:hidden">
                     {memberExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} />)}
                     {memberExpenses.length === 0 && <p className="text-center p-4">No member expenses submitted.</p>}
                 </div>
             </GlassCard>
 
-            {/* Modals */}
             <Modal isOpen={isItemModalOpen} onClose={() => setItemModalOpen(false)} title="Add New Item">
                 <form onSubmit={handleAddItem} className="space-y-4">
                     <div>
