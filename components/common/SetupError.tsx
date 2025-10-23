@@ -20,7 +20,7 @@ const SetupError: React.FC = () => {
               <li>
                 Open the new file and add the following lines, replacing the placeholder with your actual Supabase Project URL:
                 <pre className="bg-gray-800 text-white p-3 rounded-md my-2 text-sm overflow-x-auto">
-                  {`VITE_SUPABASE_URL='YOUR_SUPABASE_PROJECT_URL'\nVITE_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlamVlY25lenZob21keWJkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMTc4MTIsImV4cCI6MjA3Njc5MzgxMn0.xOQhiuS3v1OkBzE4-ank-WVwZC7J5IFFuU4Z51u-qzI'`}
+                  {`VITE_SUPABASE_URL='https://vejeecnezvhomdybdlzi.supabase.co'\nVITE_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlamVlY25lenZob21keWJkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMTc4MTIsImV4cCI6MjA3Njc5MzgxMn0.xOQhiuS3v1OkBzE4-ank-WVwZC7J5IFFuU4Z51u-qzI'`}
                 </pre>
               </li>
               <li>
