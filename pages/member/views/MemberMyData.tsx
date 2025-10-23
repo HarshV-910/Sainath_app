@@ -14,16 +14,24 @@ const MemberMyData: React.FC<MemberMyDataProps> = ({ event }) => {
     
     const myData = useMemo(() => {
         return orders
-            .filter(o => o.memberId === currentUser!.id && o.eventId === event.id && o.verified)
+            // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
+            // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
+            .filter(o => o.member_id === currentUser!.id && o.event_id === event.id && o.verified)
             .map(order => {
-                const item = items.find(i => i.id === order.itemId);
+                // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
+                const item = items.find(i => i.id === order.item_id);
                 return {
-                    requestDate: new Date(order.dateTime).toLocaleDateString(),
-                    customerName: order.customerName,
+                    // FIX: Property 'dateTime' does not exist on type 'Order'. Did you mean 'date_time'?
+                    requestDate: new Date(order.date_time).toLocaleDateString(),
+                    // FIX: Property 'customerName' does not exist on type 'Order'. Did you mean 'customer_name'?
+                    customerName: order.customer_name,
                     item: item?.name || 'N/A',
-                    quantityKg: order.quantityKg,
-                    amountInr: order.amountInr,
-                    paymentStatus: order.paymentStatus,
+                    // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
+                    quantityKg: order.quantity_kg,
+                    // FIX: Property 'amountInr' does not exist on type 'Order'. Did you mean 'amount_inr'?
+                    amountInr: order.amount_inr,
+                    // FIX: Property 'paymentStatus' does not exist on type 'Order'. Did you mean 'payment_status'?
+                    paymentStatus: order.payment_status,
                 };
             });
     }, [orders, items, currentUser, event.id]);

@@ -15,11 +15,15 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
     const [isRequestModalOpen, setRequestModalOpen] = useState(false);
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-    const eventItems = useMemo(() => items.filter(i => i.eventId === event.id), [items, event.id]);
-    const myOrders = useMemo(() => orders.filter(o => o.memberId === currentUser!.id && o.eventId === event.id)
-        .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()), [orders, currentUser, event.id]);
+    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
+    const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
+    // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
+    // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
+    // FIX: Property 'dateTime' does not exist on type 'Order'. Did you mean 'date_time'?
+    const myOrders = useMemo(() => orders.filter(o => o.member_id === currentUser!.id && o.event_id === event.id)
+        .sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime()), [orders, currentUser, event.id]);
         
-    const bakiPayments = useMemo(() => myOrders.filter(o => o.verified && o.paymentStatus === PaymentStatus.BAKI), [myOrders]);
+    const bakiPayments = useMemo(() => myOrders.filter(o => o.verified && o.payment_status === PaymentStatus.BAKI), [myOrders]);
 
     useEffect(() => {
         if (!isRequestModalOpen) {
@@ -61,7 +65,7 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
     const tdClasses = "p-2 text-xs md:p-3 md:text-sm text-gray-800";
 
     const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
-        const item = items.find(i => i.id === order.itemId);
+        const item = items.find(i => i.id === order.item_id);
         const statusText = order.verified ? 'Verified' : (order.edited ? 'Pending (Edited)' : 'Pending');
         const statusColor = order.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800';
 
@@ -70,8 +74,8 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="font-bold text-lg">{item?.name}</p>
-                        <p className="text-sm text-gray-600">for {order.customerName}</p>
-                        <p className="text-xs text-gray-500">{new Date(order.dateTime).toLocaleString()}</p>
+                        <p className="text-sm text-gray-600">for {order.customer_name}</p>
+                        <p className="text-xs text-gray-500">{new Date(order.date_time).toLocaleString()}</p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
                         {statusText}
@@ -81,18 +85,18 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                 <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                     <div>
                         <p className="text-gray-500">Quantity</p>
-                        <p className="font-semibold">{order.quantityKg.toFixed(2)} kg</p>
+                        <p className="font-semibold">{order.quantity_kg.toFixed(2)} kg</p>
                     </div>
                     <div>
                         <p className="text-gray-500">Amount</p>
-                        <p className="font-semibold">₹{order.amountInr.toFixed(2)}</p>
+                        <p className="font-semibold">₹{order.amount_inr.toFixed(2)}</p>
                     </div>
                 </div>
                 <div className="space-y-3">
                     <div>
                         <label className="block text-sm font-medium text-gray-500 mb-1">Payment Status</label>
                         <select
-                            value={order.paymentStatus}
+                            value={order.payment_status}
                             onChange={(e) => updateOrderPaymentStatus(order.id, e.target.value as PaymentStatus)}
                             className="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             disabled={!order.verified}
@@ -133,14 +137,14 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                         </thead>
                         <tbody>
                             {bakiPayments.map(order => {
-                                const item = items.find(i => i.id === order.itemId);
+                                const item = items.find(i => i.id === order.item_id);
                                 return (
                                 <tr key={order.id} className="border-b border-gray-100 hover:bg-white/70">
-                                    <td className={tdClasses}>{new Date(order.dateTime).toLocaleDateString()}</td>
-                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.customerName}</td>
+                                    <td className={tdClasses}>{new Date(order.date_time).toLocaleDateString()}</td>
+                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.customer_name}</td>
                                     <td className={tdClasses}>{item?.name}</td>
-                                    <td className={tdClasses}>{order.quantityKg.toFixed(2)}</td>
-                                    <td className={`${tdClasses} font-semibold text-red-600`}>{order.amountInr.toFixed(2)}</td>
+                                    <td className={tdClasses}>{order.quantity_kg.toFixed(2)}</td>
+                                    <td className={`${tdClasses} font-semibold text-red-600`}>{order.amount_inr.toFixed(2)}</td>
                                 </tr>
                                 )
                             })}
@@ -168,19 +172,19 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                         </thead>
                         <tbody>
                             {myOrders.map(order => {
-                                const item = items.find(i => i.id === order.itemId);
+                                const item = items.find(i => i.id === order.item_id);
                                 const statusText = order.verified ? 'Verified' : (order.edited ? 'Pending (Edited)' : 'Pending');
                                 const statusColor = order.verified ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800';
                                 
                                 return (
                                 <tr key={order.id} className="border-b border-gray-100 hover:bg-white/70">
-                                    <td className={tdClasses}>{new Date(order.dateTime).toLocaleDateString()}</td>
-                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.customerName}</td>
+                                    <td className={tdClasses}>{new Date(order.date_time).toLocaleDateString()}</td>
+                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.customer_name}</td>
                                     <td className={tdClasses}>{item?.name}</td>
-                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.amountInr.toFixed(2)}</td>
+                                    <td className={`${tdClasses} hidden md:table-cell`}>{order.amount_inr.toFixed(2)}</td>
                                     <td className={tdClasses}>
                                         <select 
-                                            value={order.paymentStatus} 
+                                            value={order.payment_status} 
                                             onChange={(e) => updateOrderPaymentStatus(order.id, e.target.value as PaymentStatus)}
                                             className="bg-white border border-gray-300 rounded-lg p-1 text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-24"
                                             disabled={!order.verified}
@@ -220,22 +224,22 @@ const MemberRequests: React.FC<MemberRequestsProps> = ({ event }) => {
                 <form onSubmit={handleRequestSubmit} className="space-y-4">
                      <div>
                         <label className="block font-medium">Customer Name</label>
-                        <input name="customerName" type="text" defaultValue={editingOrder?.customerName} required className={inputClasses}/>
+                        <input name="customerName" type="text" defaultValue={editingOrder?.customer_name} required className={inputClasses}/>
                     </div>
                      <div>
                         <label className="block font-medium">Item</label>
-                        <select name="itemId" defaultValue={editingOrder?.itemId} required className={inputClasses}>
+                        <select name="itemId" defaultValue={editingOrder?.item_id} required className={inputClasses}>
                             <option value="">Select an item</option>
                             {eventItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
                         </select>
                     </div>
                      <div>
                         <label className="block font-medium">Quantity (kg)</label>
-                        <input name="quantityKg" type="number" step="0.01" defaultValue={editingOrder?.quantityKg} required className={inputClasses}/>
+                        <input name="quantityKg" type="number" step="0.01" defaultValue={editingOrder?.quantity_kg} required className={inputClasses}/>
                     </div>
                      <div>
                         <label className="block font-medium">Amount (₹)</label>
-                        <input name="amountInr" type="number" step="0.01" defaultValue={editingOrder?.amountInr} required className={inputClasses}/>
+                        <input name="amountInr" type="number" step="0.01" defaultValue={editingOrder?.amount_inr} required className={inputClasses}/>
                     </div>
                     <p className="text-sm text-gray-600">Payment status is 'Baki' by default. You can change it after the host verifies the order.</p>
                     <Button type="submit" className="w-full">{editingOrder ? 'Update Request' : 'Submit Request'}</Button>

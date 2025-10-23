@@ -15,68 +15,66 @@ export enum PaymentStatus {
   ONLINE = 'Online',
 }
 
+// Updated User type for Supabase. It combines auth user and profile data.
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  passwordHash: string; // Storing hashed password
-  role: Role;
-  status: UserStatus;
-  profilePhotoUrl?: string;
+  id: string; // From Supabase auth
+  name: string; // From profiles table
+  email: string; // From Supabase auth
+  role: Role; // From profiles table
+  status: UserStatus; // From profiles table
 }
 
 export interface Event {
   id: string;
   name: string;
   year: number;
-  imageUrl: string;
+  image_url: string; // Field name matches Supabase table
 }
 
 export interface Item {
   id: string;
-  eventId: string;
+  event_id: string; // Field name matches Supabase table
   name: string;
-  availableStockKg: number;
+  available_stock_kg: number; // Field name matches Supabase table
 }
 
 export interface Order {
   id: string;
-  memberId: string;
-  eventId: string;
-  itemId: string;
-  customerName: string;
-  quantityKg: number;
-  amountInr: number;
-  paymentStatus: PaymentStatus;
+  member_id: string; // Field name matches Supabase table
+  event_id: string; // Field name matches Supabase table
+  item_id: string; // Field name matches Supabase table
+  customer_name: string; // Field name matches Supabase table
+  quantity_kg: number; // Field name matches Supabase table
+  amount_inr: number; // Field name matches Supabase table
+  payment_status: PaymentStatus; // Field name matches Supabase table
   verified: boolean;
-  dateTime: string;
+  date_time: string; // Field name matches Supabase table
   edited?: boolean;
 }
 
 export interface Expense {
   id: string;
-  addedById: string; // Can be host or member
-  eventId: string;
+  added_by_id: string; // Field name matches Supabase table
+  event_id: string; // Field name matches Supabase table
   name: string;
-  amountInr: number;
+  amount_inr: number; // Field name matches Supabase table
   verified: boolean;
-  dateTime: string;
+  date_time: string; // Field name matches Supabase table
 }
 
 export interface StoredFile {
   id: string;
-  uploadedById: string; // Host ID
+  uploaded_by_id: string; // Field name matches Supabase table
   name: string;
-  type: string;
-  url: string; // Base64 data URL
-  uploadDate: string;
+  file_path: string; // We now store the path, not the content
+  upload_date: string; // Field name matches Supabase table
 }
 
 export interface Note {
   id: string;
-  memberId: string;
-  eventId: string;
+  member_id: string; // Field name matches Supabase table
+  event_id: string; // Field name matches Supabase table
   content: string;
-  imageUrls?: string[];
-  dateTime: string;
+  image_urls?: string[]; // Field name matches Supabase table
+  date_time: string; // Field name matches Supabase table
 }

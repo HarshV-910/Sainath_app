@@ -13,7 +13,8 @@ const MemberProfile: React.FC = () => {
             <GlassCard>
                  <div className="flex flex-col items-center">
                     <img
-                        src={currentUser?.profilePhotoUrl || `https://i.pravatar.cc/150?u=${currentUser?.id}`}
+                        // FIX: Property 'profilePhotoUrl' does not exist on type 'User'.
+                        src={`https://i.pravatar.cc/150?u=${currentUser?.id}`}
                         alt="Profile"
                         className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-white shadow-lg"
                     />

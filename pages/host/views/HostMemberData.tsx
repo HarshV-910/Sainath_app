@@ -14,13 +14,17 @@ const HostMemberData: React.FC<HostMemberDataProps> = ({ event }) => {
     const [isModalOpen, setModalOpen] = useState(false);
 
     const members = useMemo(() => users.filter(u => u.role === 'member' && u.status === 'approved'), [users]);
-    const eventItems = useMemo(() => items.filter(i => i.eventId === event.id), [items, event.id]);
+    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
+    const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
 
     const getMemberStats = (memberId: string) => {
-        const memberOrders = orders.filter(o => o.memberId === memberId && o.eventId === event.id);
+        // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
+        // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
+        const memberOrders = orders.filter(o => o.member_id === memberId && o.event_id === event.id);
         const totalSales = memberOrders
             .filter(o => o.verified)
-            .reduce((sum, o) => sum + o.amountInr, 0);
+            // FIX: Property 'amountInr' does not exist on type 'Order'. Did you mean 'amount_inr'?
+            .reduce((sum, o) => sum + o.amount_inr, 0);
         const pendingRequests = memberOrders.filter(o => !o.verified).length;
         return { totalSales, pendingRequests };
     };

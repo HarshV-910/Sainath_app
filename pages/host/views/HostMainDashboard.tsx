@@ -11,29 +11,38 @@ interface HostMainDashboardProps {
 const HostMainDashboard: React.FC<HostMainDashboardProps> = ({ event }) => {
     const { items, orders, users, verifyOrder } = useAppContext();
     
-    const eventItems = useMemo(() => items.filter(i => i.eventId === event.id), [items, event.id]);
-    const unverifiedOrders = useMemo(() => orders.filter(o => o.eventId === event.id && !o.verified), [orders, event.id]);
+    // FIX: Property 'eventId' does not exist on type 'Item'. Did you mean 'event_id'?
+    const eventItems = useMemo(() => items.filter(i => i.event_id === event.id), [items, event.id]);
+    // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
+    const unverifiedOrders = useMemo(() => orders.filter(o => o.event_id === event.id && !o.verified), [orders, event.id]);
 
     const totalStockConsumed = (itemId: string) => {
         return orders
-            .filter(o => o.itemId === itemId && o.verified)
-            .reduce((sum, o) => sum + o.quantityKg, 0);
+            // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
+            .filter(o => o.item_id === itemId && o.verified)
+            // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
+            .reduce((sum, o) => sum + o.quantity_kg, 0);
     };
 
     const memberConsumptionSummary = useMemo(() => {
         const summary: { [key: string]: { memberName: string, itemName: string, quantity: number, amount: number } } = {};
-        const verifiedOrders = orders.filter(o => o.eventId === event.id && o.verified);
+        // FIX: Property 'eventId' does not exist on type 'Order'. Did you mean 'event_id'?
+        const verifiedOrders = orders.filter(o => o.event_id === event.id && o.verified);
         
         for (const order of verifiedOrders) {
-            const member = users.find(u => u.id === order.memberId);
-            const item = items.find(i => i.id === order.itemId);
+            // FIX: Property 'memberId' does not exist on type 'Order'. Did you mean 'member_id'?
+            const member = users.find(u => u.id === order.member_id);
+            // FIX: Property 'itemId' does not exist on type 'Order'. Did you mean 'item_id'?
+            const item = items.find(i => i.id === order.item_id);
             if (member && item) {
                 const key = `${member.id}-${item.id}`;
                 if (!summary[key]) {
                     summary[key] = { memberName: member.name, itemName: item.name, quantity: 0, amount: 0 };
                 }
-                summary[key].quantity += order.quantityKg;
-                summary[key].amount += order.amountInr;
+                // FIX: Property 'quantityKg' does not exist on type 'Order'. Did you mean 'quantity_kg'?
+                summary[key].quantity += order.quantity_kg;
+                // FIX: Property 'amountInr' does not exist on type 'Order'. Did you mean 'amount_inr'?
+                summary[key].amount += order.amount_inr;
             }
         }
         return Object.values(summary);
@@ -50,7 +59,7 @@ const HostMainDashboard: React.FC<HostMainDashboardProps> = ({ event }) => {
                 {eventItems.map(item => (
                     <GlassCard key={item.id}>
                         <h3 className="font-bold text-lg text-brand-secondary">{item.name}</h3>
-                        <p className="text-2xl font-bold">{item.availableStockKg.toFixed(2)} kg</p>
+                        <p className="text-2xl font-bold">{item.available_stock_kg.toFixed(2)} kg</p>
                         <p className="text-sm text-gray-600">Available Stock</p>
                         <p className="text-lg font-semibold text-red-600 mt-2">{totalStockConsumed(item.id).toFixed(2)} kg</p>
                         <p className="text-sm text-gray-600">Consumed</p>
@@ -74,14 +83,14 @@ const HostMainDashboard: React.FC<HostMainDashboardProps> = ({ event }) => {
                         </thead>
                         <tbody>
                             {unverifiedOrders.map(order => {
-                                const member = users.find(u => u.id === order.memberId);
-                                const item = items.find(i => i.id === order.itemId);
+                                const member = users.find(u => u.id === order.member_id);
+                                const item = items.find(i => i.id === order.item_id);
                                 return (
                                     <tr key={order.id} className="border-b border-gray-100 hover:bg-white/70">
                                         <td className={tdClasses}>{member?.name}</td>
                                         <td className={tdClasses}>{item?.name}</td>
-                                        <td className={tdClasses}>{order.quantityKg.toFixed(2)}</td>
-                                        <td className={`${tdClasses} hidden md:table-cell`}>{new Date(order.dateTime).toLocaleString()}</td>
+                                        <td className={tdClasses}>{order.quantity_kg.toFixed(2)}</td>
+                                        <td className={`${tdClasses} hidden md:table-cell`}>{new Date(order.date_time).toLocaleString()}</td>
                                         <td className={tdClasses}>
                                             <Button variant="success" size="sm" onClick={() => verifyOrder(order.id)}>Verify</Button>
                                         </td>
