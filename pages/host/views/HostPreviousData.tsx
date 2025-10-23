@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Event } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';

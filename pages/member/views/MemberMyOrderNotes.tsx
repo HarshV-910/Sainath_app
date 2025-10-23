@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Event, Note } from '../../../types';
 import { useAppContext } from '../../../hooks/useAppContext';
