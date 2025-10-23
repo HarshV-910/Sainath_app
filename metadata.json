@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Sainath Inventory Management",
+  "description": "A responsive, real-time web application to manage event-based inventory, member sales, and expense tracking for a host and up to twenty members. Features include role-based dashboards, request management, data export, and persistent storage.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
