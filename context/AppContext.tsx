@@ -1,4 +1,5 @@
 
+
 import React, { createContext, ReactNode, useState, useEffect } from 'react';
 import { User, Role, UserStatus, Event, Item, Order, Expense, StoredFile, Note, PaymentStatus } from '../types';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -81,7 +82,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (users.length === 0) {
             const host: User = {
                 id: crypto.randomUUID(),
-                name: 'Harsh Vekariya',
+                name: 'Sainath host',
                 email: 'harshvekariya910@gmail.com',
                 passwordHash: simpleHash('123456'),
                 role: Role.HOST,
